@@ -52,7 +52,9 @@ export default function Hero() {
         </motion.h1>
 
         <motion.div variants={item}>
-          <AvatarStoryPlayer />
+          <AvatarStoryPlayer
+            avatarSrc={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/avatar/aurora.jpg`}
+          />
         </motion.div>
       </motion.div>
     </section>
