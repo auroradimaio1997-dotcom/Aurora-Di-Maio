@@ -1,28 +1,28 @@
-import Link from "next/link";
-import { FileText, Landmark, Search, ArrowRight } from "lucide-react";
+import { GraduationCap, Scale, BookOpen } from "lucide-react";
 import Hero from "@/components/Hero";
-import ServiceCard from "@/components/ServiceCard";
-import AssistantSlot from "@/components/AssistantSlot";
+import AreaCard from "@/components/AreaCard";
 import Reveal from "@/components/Reveal";
 
-const services = [
+const areas = [
   {
-    icon: FileText,
-    title: "Predisposizione atti",
+    href: "/dottorato",
+    icon: GraduationCap,
+    title: "Dottorato",
     description:
-      "Supporto nella preparazione e verifica della documentazione per atti notarili, con attenzione a precisione e conformità normativa.",
+      "Percorso di dottorato: bibliografia, capitoli di tesi, appunti di seminari e ricerca in corso.",
   },
   {
-    icon: Landmark,
-    title: "Pratiche immobiliari e societarie",
+    href: "/assistente-notarile",
+    icon: Scale,
+    title: "Assistente Notarile",
     description:
-      "Assistenza in compravendite, costituzioni societarie e adempimenti connessi, in coordinamento con il notaio titolare.",
+      "Lavoro in studio: modulistica, procedure pratiche e normativa di riferimento.",
   },
   {
-    icon: Search,
-    title: "Ricerca giuridica",
-    description:
-      "Approfondimenti normativi e dottrinali a supporto delle pratiche, con un metodo maturato nel percorso di dottorato.",
+    href: "/accademia",
+    icon: BookOpen,
+    title: "Accademia",
+    description: "Tesi, saggi e monografie: materiali e progressi di scrittura.",
   },
 ];
 
@@ -34,56 +34,21 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
         <Reveal className="max-w-2xl">
           <h2 className="font-serif text-3xl font-semibold text-primary">
-            Come posso aiutarti
+            Le mie aree
           </h2>
           <p className="mt-3 text-secondary">
-            Un supporto puntuale per privati, imprese e colleghi, dalla
-            singola pratica alla ricerca approfondita.
+            Ogni area avrà il proprio agent dedicato, pensato per quel tipo
+            di lavoro.
           </p>
         </Reveal>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {services.map((service, index) => (
-            <Reveal key={service.title} delay={index * 100}>
-              <ServiceCard {...service} />
+          {areas.map((area, index) => (
+            <Reveal key={area.href} delay={index * 100}>
+              <AreaCard {...area} />
             </Reveal>
           ))}
         </div>
-
-        <div className="mt-10">
-          <Link
-            href="/servizi"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
-          >
-            Tutti i servizi
-            <ArrowRight
-              size={16}
-              aria-hidden="true"
-              className="transition-transform duration-200 group-hover:translate-x-1"
-            />
-          </Link>
-        </div>
-      </section>
-
-      <AssistantSlot />
-
-      <section className="mx-auto max-w-6xl px-6 py-16 text-center md:py-24">
-        <Reveal>
-          <h2 className="font-serif text-3xl font-semibold text-primary">
-            Parliamo della tua pratica
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-secondary">
-            Scrivimi per una prima valutazione: ti risponderò con i prossimi
-            passi e la documentazione necessaria.
-          </p>
-          <Link
-            href="/contatti"
-            className="mt-8 inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/20"
-          >
-            Contattami
-            <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </Reveal>
       </section>
     </>
   );

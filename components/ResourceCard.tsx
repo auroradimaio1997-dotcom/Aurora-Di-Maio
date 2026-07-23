@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export default function ServiceCard({
+export default function ResourceCard({
   icon: Icon,
   title,
   description,

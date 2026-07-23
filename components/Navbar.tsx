@@ -6,9 +6,9 @@ import { Menu, X } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/chi-sono", label: "Chi Sono" },
-  { href: "/servizi", label: "Servizi" },
-  { href: "/contatti", label: "Contatti" },
+  { href: "/dottorato", label: "Dottorato" },
+  { href: "/assistente-notarile", label: "Assistente Notarile" },
+  { href: "/accademia", label: "Accademia" },
 ];
 
 export default function Navbar() {

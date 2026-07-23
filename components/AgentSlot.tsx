@@ -1,33 +1,32 @@
 import { Bot, Sparkles } from "lucide-react";
 
 /**
- * Reserved section for the future AI agent(s) (chat assistant, practice
- * automation, etc.). Swap the placeholder content below for the real
- * integration once the agent and its interface contract are defined.
+ * Reserved section for a future per-area AI agent. Swap the placeholder
+ * content below for the real integration once each agent is built.
  */
-export default function AssistantSlot() {
+export default function AgentSlot({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
-    <section
-      aria-labelledby="assistant-heading"
-      className="border-y bg-primary"
-    >
-      <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-6 py-16 md:flex-row md:items-center md:justify-between">
+    <section aria-labelledby="agent-heading" className="rounded-xl bg-primary">
+      <div className="flex flex-col items-start gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between md:px-10">
         <div className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-on-primary/10 text-on-primary">
             <Bot size={24} aria-hidden="true" />
           </span>
           <div>
             <h2
-              id="assistant-heading"
+              id="agent-heading"
               className="font-serif text-2xl font-semibold text-on-primary"
             >
-              Assistente virtuale, in arrivo
+              {title}
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-on-primary/70">
-              Questo spazio è riservato a un assistente AI dedicato allo
-              studio: risposte immediate su pratiche notarili, orientamento
-              sui documenti necessari e supporto alla ricerca. Presto
-              disponibile.
+              {description}
             </p>
           </div>
         </div>

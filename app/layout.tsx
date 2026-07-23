@@ -4,9 +4,9 @@ import Footer from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aurora Di Maio | Dottoranda & Assistente Notarile",
+  title: "Aurora Di Maio | Spazio di lavoro personale",
   description:
-    "Sito professionale di Aurora Di Maio, dottoranda e assistente notarile: servizi, ricerca e contatti.",
+    "Spazio di lavoro personale di Aurora Di Maio per dottorato, assistenza notarile e ricerca accademica.",
 };
 
 export default function RootLayout({
