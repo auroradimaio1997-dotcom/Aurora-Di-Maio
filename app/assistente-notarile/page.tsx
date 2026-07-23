@@ -17,6 +17,7 @@ export default function AssistenteNotarilePage() {
           { label: "Redazione Atti", href: "/assistente-notarile/redazione-atti" },
           { label: "Ricerca giuridica — Banche dati notarili", href: "/assistente-notarile/ricerca-notarile" },
           { label: "Ricerca giuridica — Dottrina e Giurisprudenza", href: "/assistente-notarile/ricerca-giuridica" },
+          { label: "Visure e Adempimenti", href: "/assistente-notarile/visure-adempimenti" },
         ]}
       </PagePlaceholder>
     </AppShell>

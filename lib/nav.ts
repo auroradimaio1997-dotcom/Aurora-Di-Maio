@@ -54,6 +54,16 @@ export const NAV: NavSection[] = [
           },
         ],
       },
+      {
+        label: "Visure e Adempimenti",
+        href: "/assistente-notarile/visure-adempimenti",
+        children: [
+          { label: "Visure camerali", href: "/assistente-notarile/visure-adempimenti/visure-camerali" },
+          { label: "Visure ipocatastali", href: "/assistente-notarile/visure-adempimenti/visure-ipocatastali" },
+          { label: "Adempimenti", href: "/assistente-notarile/visure-adempimenti/adempimenti" },
+          { label: "Tassazione", href: "/assistente-notarile/visure-adempimenti/tassazione" },
+        ],
+      },
     ],
   },
   {
