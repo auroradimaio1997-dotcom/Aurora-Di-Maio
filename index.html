@@ -21,6 +21,7 @@
   <div class="nav__links">
     <a href="#chi-sono">Chi sono</a>
     <a href="#ricerca">Ricerca</a>
+    <a href="#assistente">Assistente</a>
     <a href="#contatti">Contatti</a>
   </div>
 </nav>
@@ -122,6 +123,51 @@
     Questa sezione è pensata per il titolo della tesi, gli interessi specifici e le pubblicazioni.
     Scrivimi il contenuto e lo inserisco al posto di questo segnaposto.
   </p>
+</section>
+
+<section class="section section--alt" id="assistente">
+  <p class="section__tag">Area accademica</p>
+  <h2 class="section__title">Assistente di ricerca</h2>
+  <p class="section__body">
+    Carica o incolla i materiali che hai già raccolto tu (es. estratti scaricati da OneLegale o da
+    altre tue fonti): l'assistente scrive una bozza di saggio usando <em>solo</em> quei documenti,
+    senza consultare banche dati esterne né usare conoscenza generale. Se i documenti non coprono
+    un punto, lo segnala invece di inventarlo. Ogni bozza va sempre verificata prima dell'uso.
+  </p>
+
+  <form class="essay-form" id="essay-form" novalidate>
+    <label class="essay-form__label" for="essay-topic">Argomento di ricerca</label>
+    <textarea
+      class="essay-form__input"
+      id="essay-topic"
+      name="topic"
+      rows="2"
+      maxlength="300"
+      placeholder="Es. la responsabilità precontrattuale nel diritto civile italiano"
+      required
+    ></textarea>
+
+    <label class="essay-form__label" for="essay-files">Documenti (.txt/.md — i tuoi estratti)</label>
+    <input class="essay-form__file" id="essay-files" name="files" type="file" accept=".txt,.md" multiple />
+
+    <label class="essay-form__label" for="essay-paste">Oppure incolla qui il testo</label>
+    <textarea
+      class="essay-form__input"
+      id="essay-paste"
+      name="paste"
+      rows="5"
+      placeholder="Incolla qui l'estratto copiato dal tuo documento…"
+    ></textarea>
+
+    <div class="essay-form__row">
+      <button class="essay-form__submit" type="submit">
+        <span class="essay-form__submit-label">Genera saggio</span>
+      </button>
+      <p class="essay-form__hint" id="essay-hint"></p>
+    </div>
+  </form>
+
+  <div class="essay-result" id="essay-result" hidden aria-live="polite"></div>
 </section>
 
 <section class="section" id="contatti">

@@ -418,6 +418,162 @@ a { color: inherit; }
   color: var(--color-accent-2);
 }
 
+/* ---------- essay-form (8 states: default, hover, focus, active, disabled, loading, error, success) ---------- */
+
+.essay-form {
+  margin-top: var(--space-lg);
+  max-width: 34rem;
+}
+
+.essay-form__label {
+  display: block;
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.essay-form__label:first-child {
+  margin-top: 0;
+}
+
+.essay-form__input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-ink-faint);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.essay-form__file {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.essay-form__file::file-selector-button {
+  appearance: none;
+  border: 1px solid var(--color-ink-faint);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.8rem;
+  margin-right: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.essay-form__file::file-selector-button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.essay-form__file:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.essay-form__input:hover {
+  border-color: var(--color-ink-soft);
+}
+
+.essay-form__input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-color: var(--color-accent);
+}
+
+.essay-form[data-state="error"] .essay-form__input {
+  border-color: var(--color-accent);
+}
+
+.essay-form__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.essay-form__submit {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-paper);
+  background: var(--color-accent);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+.essay-form__submit:hover {
+  background: var(--color-accent-2);
+}
+
+.essay-form__submit:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.essay-form__submit:active {
+  transform: scale(0.97);
+}
+
+.essay-form__submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.essay-form[data-state="loading"] .essay-form__submit-label::after {
+  content: "…";
+}
+
+.essay-form__hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-faint);
+}
+
+.essay-form[data-state="error"] .essay-form__hint {
+  color: var(--color-accent);
+}
+
+.essay-form[data-state="success"] .essay-form__hint {
+  color: var(--color-ink-soft);
+}
+
+.essay-result {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-paper);
+  border: var(--rule-hairline);
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-ink);
+  white-space: pre-wrap;
+  max-width: 42rem;
+}
+
 /* ---------- footer ---------- */
 
 .statement {
