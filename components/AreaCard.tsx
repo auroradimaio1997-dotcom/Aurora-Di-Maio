@@ -21,7 +21,7 @@ export default function AreaCard({
       <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent transition-transform duration-200 group-hover:scale-110">
         <Icon size={22} aria-hidden="true" />
       </span>
-      <h3 className="mt-4 font-serif text-lg font-semibold text-primary">
+      <h3 className="mt-4 font-serif text-lg font-semibold text-foreground">
         {title}
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-secondary">

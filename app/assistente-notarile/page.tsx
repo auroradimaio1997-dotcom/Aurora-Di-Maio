@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { FileText, ClipboardCheck, Landmark } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
 import AgentSlot from "@/components/AgentSlot";
+import AnimatedBooks from "@/components/AnimatedBooks";
 import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -29,14 +30,17 @@ const resources = [
 export default function AssistenteNotarilePage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-      <Reveal className="max-w-2xl">
-        <h1 className="font-serif text-4xl font-semibold text-primary">
-          Assistente Notarile
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-secondary">
-          Modulistica, procedure pratiche e normativa di riferimento per il
-          lavoro quotidiano in studio.
-        </p>
+      <Reveal className="flex flex-col items-center gap-10 text-center md:flex-row md:text-left">
+        <div className="max-w-2xl">
+          <h1 className="font-serif text-4xl font-semibold text-foreground">
+            Assistente Notarile
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-secondary">
+            Modulistica, procedure pratiche e normativa di riferimento per il
+            lavoro quotidiano in studio.
+          </p>
+        </div>
+        <AnimatedBooks variant="notarile" />
       </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">

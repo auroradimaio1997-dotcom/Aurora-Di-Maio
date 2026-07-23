@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Library, FileStack, NotebookPen } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
 import AgentSlot from "@/components/AgentSlot";
+import AnimatedBooks from "@/components/AnimatedBooks";
 import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -29,14 +30,17 @@ const resources = [
 export default function DottoratoPage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-      <Reveal className="max-w-2xl">
-        <h1 className="font-serif text-4xl font-semibold text-primary">
-          Dottorato
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-secondary">
-          Bibliografia, capitoli di tesi, appunti di seminari e ricerca in
-          corso per il percorso di dottorato.
-        </p>
+      <Reveal className="flex flex-col items-center gap-10 text-center md:flex-row md:text-left">
+        <div className="max-w-2xl">
+          <h1 className="font-serif text-4xl font-semibold text-foreground">
+            Dottorato
+          </h1>
+          <p className="mt-4 text-lg leading-relaxed text-secondary">
+            Bibliografia, capitoli di tesi, appunti di seminari e ricerca in
+            corso per il percorso di dottorato.
+          </p>
+        </div>
+        <AnimatedBooks variant="dottorato" />
       </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">

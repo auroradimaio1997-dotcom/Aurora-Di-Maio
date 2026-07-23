@@ -14,6 +14,7 @@ const config: Config = {
         "on-primary": withOpacity("--color-on-primary"),
         secondary: withOpacity("--color-secondary"),
         accent: withOpacity("--color-accent"),
+        cta: withOpacity("--color-cta"),
         background: withOpacity("--color-background"),
         foreground: withOpacity("--color-foreground"),
         muted: withOpacity("--color-muted"),

@@ -33,7 +33,7 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
         <Reveal className="max-w-2xl">
-          <h2 className="font-serif text-3xl font-semibold text-primary">
+          <h2 className="font-serif text-3xl font-semibold text-foreground">
             Le mie aree
           </h2>
           <p className="mt-3 text-secondary">

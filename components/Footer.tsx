@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="border-t bg-muted">
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:grid-cols-2">
         <div>
-          <p className="font-serif text-lg font-semibold text-primary">
+          <p className="font-serif text-lg font-semibold text-foreground">
             Aurora Di Maio
           </p>
           <p className="mt-2 max-w-xs text-sm leading-relaxed text-secondary">
@@ -15,7 +15,7 @@ export default function Footer() {
         </div>
 
         <nav aria-label="Link rapidi" className="text-sm">
-          <p className="mb-3 font-medium text-primary">Sezioni</p>
+          <p className="mb-3 font-medium text-foreground">Sezioni</p>
           <ul className="space-y-2 text-secondary">
             <li>
               <Link href="/dottorato" className="hover:text-accent">

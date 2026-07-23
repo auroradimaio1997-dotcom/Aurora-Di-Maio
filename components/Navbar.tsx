@@ -19,7 +19,7 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className="font-serif text-xl font-semibold tracking-tight text-primary"
+          className="font-serif text-xl font-semibold tracking-tight text-foreground"
         >
           Aurora Di Maio
         </Link>
@@ -41,7 +41,7 @@ export default function Navbar() {
           type="button"
           aria-label={open ? "Chiudi menu" : "Apri menu"}
           aria-expanded={open}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-primary md:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-foreground md:hidden"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X size={24} /> : <Menu size={24} />}
