@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   ArrowRight,
 } from "lucide-react";
+import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
   title: "Servizi | Aurora Di Maio",
@@ -49,7 +50,7 @@ const services = [
 export default function ServiziPage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-      <div className="max-w-2xl">
+      <Reveal className="max-w-2xl">
         <h1 className="font-serif text-4xl font-semibold text-primary">
           Servizi
         </h1>
@@ -57,28 +58,27 @@ export default function ServiziPage() {
           Un supporto puntuale e su misura per ogni fase della pratica
           notarile.
         </p>
-      </div>
+      </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-2">
-        {services.map((service) => (
-          <div
-            key={service.title}
-            className="rounded-xl border bg-background p-6"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <service.icon size={22} aria-hidden="true" />
-            </span>
-            <h2 className="mt-4 font-serif text-lg font-semibold text-primary">
-              {service.title}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">
-              {service.description}
-            </p>
-          </div>
+        {services.map((service, index) => (
+          <Reveal key={service.title} delay={(index % 2) * 100}>
+            <div className="group rounded-xl border bg-background p-6 transition-all duration-200 hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg hover:shadow-primary/5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent transition-transform duration-200 group-hover:scale-110">
+                <service.icon size={22} aria-hidden="true" />
+              </span>
+              <h2 className="mt-4 font-serif text-lg font-semibold text-primary">
+                {service.title}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-secondary">
+                {service.description}
+              </p>
+            </div>
+          </Reveal>
         ))}
       </div>
 
-      <div className="mt-14 rounded-xl bg-primary px-8 py-10 text-center">
+      <Reveal className="mt-14 rounded-xl bg-primary px-8 py-10 text-center">
         <h2 className="font-serif text-2xl font-semibold text-on-primary">
           Non trovi quello che cerchi?
         </h2>
@@ -88,12 +88,12 @@ export default function ServiziPage() {
         </p>
         <Link
           href="/contatti"
-          className="mt-6 inline-flex items-center gap-2 rounded-md bg-on-primary px-6 py-3 text-sm font-semibold text-primary transition-colors duration-200 hover:bg-on-primary/90"
+          className="mt-6 inline-flex items-center gap-2 rounded-md bg-on-primary px-6 py-3 text-sm font-semibold text-primary transition-all duration-200 hover:bg-on-primary/90 hover:shadow-lg"
         >
           Contattami
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
-      </div>
+      </Reveal>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GraduationCap, Scale, BookOpen } from "lucide-react";
+import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
   title: "Chi Sono | Aurora Di Maio",
@@ -29,7 +30,7 @@ const milestones = [
 export default function ChiSonoPage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-      <div className="max-w-2xl">
+      <Reveal className="max-w-2xl">
         <h1 className="font-serif text-4xl font-semibold text-primary">
           Chi sono
         </h1>
@@ -39,21 +40,23 @@ export default function ChiSonoPage() {
           accademica, con l&apos;obiettivo di offrire un supporto preciso,
           aggiornato e attento alle persone.
         </p>
-      </div>
+      </Reveal>
 
       <div className="mt-14 grid gap-8 md:grid-cols-3">
-        {milestones.map((item) => (
-          <div key={item.title} className="rounded-xl border p-6">
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <item.icon size={22} aria-hidden="true" />
-            </span>
-            <h2 className="mt-4 font-serif text-lg font-semibold text-primary">
-              {item.title}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">
-              {item.description}
-            </p>
-          </div>
+        {milestones.map((item, index) => (
+          <Reveal key={item.title} delay={index * 100}>
+            <div className="group rounded-xl border p-6 transition-all duration-200 hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg hover:shadow-primary/5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent transition-transform duration-200 group-hover:scale-110">
+                <item.icon size={22} aria-hidden="true" />
+              </span>
+              <h2 className="mt-4 font-serif text-lg font-semibold text-primary">
+                {item.title}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-secondary">
+                {item.description}
+              </p>
+            </div>
+          </Reveal>
         ))}
       </div>
     </section>

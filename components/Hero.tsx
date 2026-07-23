@@ -10,29 +10,33 @@ export default function Hero() {
       />
 
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-20 md:py-28">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium text-secondary">
+        <div className="animate-fade-up inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium text-secondary">
           <Scale size={14} aria-hidden="true" />
           Assistenza notarile &amp; ricerca giuridica
         </div>
 
-        <h1 className="max-w-3xl font-serif text-4xl font-semibold leading-tight tracking-tight text-primary md:text-6xl">
+        <h1 className="animate-fade-up max-w-3xl font-serif text-4xl font-semibold leading-tight tracking-tight text-primary [animation-delay:100ms] md:text-6xl">
           Rigore giuridico, chiarezza e cura per ogni pratica.
         </h1>
 
-        <p className="max-w-2xl text-lg leading-relaxed text-secondary">
+        <p className="animate-fade-up max-w-2xl text-lg leading-relaxed text-secondary [animation-delay:200ms]">
           Sono Aurora Di Maio, dottoranda e assistente notarile. Affianco
           privati, imprese e professionisti nella gestione di atti e pratiche
           notarili, con un approccio preciso e aggiornato, radicato nella
           ricerca accademica.
         </p>
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="animate-fade-up flex flex-wrap items-center gap-4 [animation-delay:300ms]">
           <Link
             href="/contatti"
-            className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-on-primary transition-colors duration-200 hover:bg-accent/90"
+            className="group inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-on-primary transition-all duration-200 hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/20"
           >
             Richiedi una consulenza
-            <ArrowRight size={16} aria-hidden="true" />
+            <ArrowRight
+              size={16}
+              aria-hidden="true"
+              className="transition-transform duration-200 group-hover:translate-x-1"
+            />
           </Link>
           <Link
             href="/chi-sono"

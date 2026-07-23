@@ -33,7 +33,7 @@ export default function AssistantSlot() {
         </div>
 
         <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-on-primary/20 px-4 py-2 text-xs font-medium text-on-primary/80">
-          <Sparkles size={14} aria-hidden="true" />
+          <Sparkles size={14} aria-hidden="true" className="animate-pulse" />
           Prossimamente
         </span>
       </div>
