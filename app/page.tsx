@@ -1,5 +1,5 @@
-import Hero from "@/components/Hero";
+import HeroPremium from "@/components/HeroPremium";
 
 export default function HomePage() {
-  return <Hero />;
+  return <HeroPremium />;
 }

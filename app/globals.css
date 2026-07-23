@@ -17,6 +17,8 @@
   --color-border: 30 41 59;
   --color-destructive: 248 113 113;
   --color-ring: 45 212 191;
+  --color-gold: 212 175 55;
+  --color-navy: 5 8 16;
 
   --font-heading: "Crimson Pro", serif;
   --font-body: "Atkinson Hyperlegible", sans-serif;
@@ -42,6 +44,8 @@
   --color-border: 226 232 240;
   --color-destructive: 220 38 38;
   --color-ring: 15 118 110;
+  --color-gold: 180 140 30;
+  --color-navy: 250 250 249;
 }
 
 * {
@@ -92,6 +96,22 @@ h4 {
 
 .animate-float {
   animation: float-slow 5s ease-in-out infinite;
+}
+
+.glass {
+  background: rgb(var(--color-foreground) / 0.04);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(var(--color-gold) / 0.18);
+}
+
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+.animate-blink {
+  animation: blink 5.5s ease-in-out infinite;
+  transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

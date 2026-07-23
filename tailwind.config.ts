@@ -21,6 +21,8 @@ const config: Config = {
         border: withOpacity("--color-border"),
         destructive: withOpacity("--color-destructive"),
         ring: withOpacity("--color-ring"),
+        gold: withOpacity("--color-gold"),
+        navy: withOpacity("--color-navy"),
       },
       fontFamily: {
         serif: ["var(--font-heading)", "serif"],
