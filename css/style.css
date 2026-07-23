@@ -1,6 +1,6 @@
 /* Hallmark · macrostructure: Marquee Hero · tone: editorial-academic · anchor hue: warm-burgundy
  * genre: editorial · theme: Lumen (classical-serif, light, warm) · enrichment: Tier A/B hand-built SVG mobile
- * nav: none (single-page) · footer: Ft5 Statement
+ * nav: N5 Floating pill · footer: Ft5 Statement
  */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -29,6 +29,71 @@ a { color: inherit; }
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
+}
+
+/* ---------- nav (N5 floating pill) ---------- */
+
+.nav {
+  position: fixed;
+  top: var(--space-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0.6rem var(--space-md);
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--color-paper) 82%, transparent);
+  border: var(--rule-hairline);
+  backdrop-filter: blur(8px);
+  max-width: calc(100vw - 2rem);
+}
+
+.nav__brand {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  text-decoration: none;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.nav__links {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav__links::-webkit-scrollbar { display: none; }
+
+.nav__links a {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-ink-soft);
+  transition: color var(--dur-fast) var(--ease-out);
+  padding: 0.2rem 0;
+  white-space: nowrap;
+}
+
+.nav__links a:hover,
+.nav__links a:focus-visible {
+  color: var(--color-accent);
+}
+
+@media (max-width: 480px) {
+  .nav {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    max-width: calc(100vw - 1.5rem);
+  }
+  .nav__brand { font-size: 0.85rem; }
+  .nav__links { gap: 0.55rem; }
+  .nav__links a { font-size: 0.6rem; letter-spacing: 0.04em; }
 }
 
 /* ---------- hero ---------- */
@@ -244,6 +309,76 @@ a { color: inherit; }
   50%      { transform: rotate(6deg); }
 }
 
+/* ---------- content sections ---------- */
+
+.section {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-md);
+  opacity: 0;
+  transform: translateY(1.5rem);
+  animation: rise var(--dur-slow) var(--ease-out) forwards;
+  animation-timeline: view();
+  animation-range: entry 0% cover 30%;
+}
+
+.section--alt {
+  background: var(--color-paper-2);
+  max-width: none;
+}
+
+.section--alt > * {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section__tag {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.section__title {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+  font-size: var(--text-4xl);
+  line-height: 1.1;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.section__body {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+  color: var(--color-ink-soft);
+}
+
+.section__body:last-child { margin-bottom: 0; }
+
+.contact-link {
+  display: inline-block;
+  margin-top: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.contact-link:hover,
+.contact-link:focus-visible {
+  color: var(--color-accent-2);
+}
+
 /* ---------- footer ---------- */
 
 .statement {
@@ -271,7 +406,7 @@ a { color: inherit; }
 
 @media (max-width: 480px) {
   .hero { padding-top: var(--space-3xl); }
-  .mobile { top: 2rem; height: 7rem; }
+  .mobile { top: 4.5rem; height: 7rem; }
   .charm__label { display: none; }
   .hero__content { gap: var(--space-sm); }
 }
@@ -283,7 +418,7 @@ a { color: inherit; }
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .letter, .hero__eyebrow, .hero__subtitle {
+  .letter, .hero__eyebrow, .hero__subtitle, .section {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
