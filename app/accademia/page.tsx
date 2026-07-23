@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { GraduationCap, PenLine, BookMarked } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
-import AgentSlot from "@/components/AgentSlot";
+import ResearchAgent from "@/components/ResearchAgent";
 import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
@@ -62,10 +62,7 @@ export default function AccademiaPage() {
       </div>
 
       <Reveal className="mt-14">
-        <AgentSlot
-          title="Agent Accademia, in arrivo"
-          description="Uno spazio riservato all'agent dedicato alla scrittura accademica: supporto su tesi, saggi e monografie."
-        />
+        <ResearchAgent />
       </Reveal>
     </section>
   );
