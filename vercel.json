@@ -5,6 +5,9 @@
     },
     "api/agente-notarile.js": {
       "maxDuration": 300
+    },
+    "api/agente-coordinatore.js": {
+      "maxDuration": 60
     }
   }
 }

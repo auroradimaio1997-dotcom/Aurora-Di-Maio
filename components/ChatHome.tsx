@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import ChatWidget from "./ChatWidget";
 
 type QuickAction = {
   emoji: string;
@@ -15,16 +17,17 @@ const QUICK_ACTIONS: QuickAction[] = [
   { emoji: "🎓", label: "Dottorato", href: "/accademia/dottorato" },
   { emoji: "✍️", label: "Scrivi un saggio", href: "/accademia/lavori-in-corso/saggi-da-pubblicare" },
   { emoji: "📄", label: "Analizza un documento" },
-  { emoji: "💬", label: "Nuova conversazione" },
 ];
 
 /**
  * The chat landing view shown once the visitor clicks "Entra
- * nell'assistente". Layout + routing only for now, per brief — quick
- * actions with a matching sidebar destination are real links; the other
- * two (no destination defined yet) are present but inert.
+ * nell'assistente": greeting, quick actions (5 route to a matching
+ * sidebar destination; "Analizza un documento" has none defined yet), and
+ * a live chat wired to the Aurora coordinatore agent.
  */
 export default function ChatHome() {
+  const [chatKey, setChatKey] = useState(0);
+
   return (
     <div>
       <h2 className="font-serif text-3xl font-semibold text-foreground md:text-4xl">
@@ -64,7 +67,22 @@ export default function ChatHome() {
             </button>
           )
         )}
+
+        <button
+          type="button"
+          onClick={() => setChatKey((k) => k + 1)}
+          className="group flex items-center gap-4 rounded-xl border bg-background p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
+        >
+          <span className="text-2xl" aria-hidden="true">
+            💬
+          </span>
+          <span className="font-serif text-base font-semibold text-foreground group-hover:text-gold">
+            Nuova conversazione
+          </span>
+        </button>
       </div>
+
+      <ChatWidget key={chatKey} />
     </div>
   );
 }
