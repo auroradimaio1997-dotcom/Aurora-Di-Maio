@@ -2,6 +2,9 @@
   "functions": {
     "api/agente-ricerca.js": {
       "maxDuration": 300
+    },
+    "api/agente-notarile.js": {
+      "maxDuration": 300
     }
   }
 }

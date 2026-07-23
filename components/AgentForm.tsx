@@ -6,10 +6,23 @@ import { Bot, Loader2 } from "lucide-react";
 type Result = {
   pdf?: string;
   titolo_saggio?: string;
+  titolo?: string;
   articoli_analizzati?: number;
 };
 
-export default function ResearchAgent() {
+export default function AgentForm({
+  endpoint,
+  title,
+  description,
+  temaPlaceholder,
+  showExtraFields = false,
+}: {
+  endpoint: string;
+  title: string;
+  description: string;
+  temaPlaceholder: string;
+  showExtraFields?: boolean;
+}) {
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -23,23 +36,23 @@ export default function ResearchAgent() {
 
     if (!tema) {
       setStatus("error");
-      setErrorMsg("Indica un tema di ricerca.");
+      setErrorMsg("Indica un tema.");
       return;
     }
 
-    const payload: Record<string, unknown> = {
-      tema,
-      max_articoli: Number(form.get("max_articoli")) || 4,
-    };
-    const anno = form.get("anno");
-    if (anno) payload.anno = Number(anno);
+    const payload: Record<string, unknown> = { tema };
+    if (showExtraFields) {
+      payload.max_articoli = Number(form.get("max_articoli")) || 4;
+      const anno = form.get("anno");
+      if (anno) payload.anno = Number(anno);
+    }
 
     setStatus("loading");
     setErrorMsg("");
     setResult(null);
 
     try {
-      const res = await fetch("/api/agente-ricerca", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -70,27 +83,26 @@ export default function ResearchAgent() {
               id="agent-heading"
               className="font-serif text-2xl font-semibold text-on-primary"
             >
-              Agent Accademia
+              {title}
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-on-primary/70">
-              Indica un tema di diritto: l&apos;agente cerca e analizza gli
-              articoli pertinenti e prepara un saggio in PDF. Richiede qualche
-              minuto — resta su questa pagina. Verifica sempre il risultato
-              prima di qualunque uso accademico.
+              {description}
             </p>
           </div>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="grid gap-4 rounded-lg bg-on-primary/5 p-5 md:grid-cols-[1fr_auto_auto_auto]"
+          className={`grid gap-4 rounded-lg bg-on-primary/5 p-5 ${
+            showExtraFields ? "md:grid-cols-[1fr_auto_auto_auto]" : "md:grid-cols-[1fr_auto]"
+          }`}
         >
-          <div className="md:col-span-4">
+          <div className={showExtraFields ? "md:col-span-4" : ""}>
             <label
               htmlFor="tema"
               className="mb-1 block text-xs font-medium uppercase tracking-wide text-on-primary/60"
             >
-              Tema di ricerca
+              Tema
             </label>
             <textarea
               id="tema"
@@ -98,46 +110,50 @@ export default function ResearchAgent() {
               rows={2}
               maxLength={300}
               required
-              placeholder="Es. la responsabilità precontrattuale nel diritto civile italiano"
+              placeholder={temaPlaceholder}
               className="w-full rounded-md border border-on-primary/20 bg-transparent px-3 py-2 text-sm text-on-primary placeholder:text-on-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="max_articoli"
-              className="mb-1 block text-xs font-medium uppercase tracking-wide text-on-primary/60"
-            >
-              N. articoli
-            </label>
-            <input
-              id="max_articoli"
-              name="max_articoli"
-              type="number"
-              min={1}
-              max={10}
-              defaultValue={4}
-              className="w-24 rounded-md border border-on-primary/20 bg-transparent px-3 py-2 text-sm text-on-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
+          {showExtraFields && (
+            <>
+              <div>
+                <label
+                  htmlFor="max_articoli"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-on-primary/60"
+                >
+                  N. articoli
+                </label>
+                <input
+                  id="max_articoli"
+                  name="max_articoli"
+                  type="number"
+                  min={1}
+                  max={10}
+                  defaultValue={4}
+                  className="w-24 rounded-md border border-on-primary/20 bg-transparent px-3 py-2 text-sm text-on-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
 
-          <div>
-            <label
-              htmlFor="anno"
-              className="mb-1 block text-xs font-medium uppercase tracking-wide text-on-primary/60"
-            >
-              Anno
-            </label>
-            <input
-              id="anno"
-              name="anno"
-              type="number"
-              min={1950}
-              max={2100}
-              placeholder="2024"
-              className="w-24 rounded-md border border-on-primary/20 bg-transparent px-3 py-2 text-sm text-on-primary placeholder:text-on-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          </div>
+              <div>
+                <label
+                  htmlFor="anno"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-on-primary/60"
+                >
+                  Anno
+                </label>
+                <input
+                  id="anno"
+                  name="anno"
+                  type="number"
+                  min={1950}
+                  max={2100}
+                  placeholder="2024"
+                  className="w-24 rounded-md border border-on-primary/20 bg-transparent px-3 py-2 text-sm text-on-primary placeholder:text-on-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex items-end">
             <button
@@ -148,15 +164,14 @@ export default function ResearchAgent() {
               {status === "loading" && (
                 <Loader2 size={14} className="animate-spin" aria-hidden="true" />
               )}
-              Genera saggio
+              Genera
             </button>
           </div>
         </form>
 
         {status === "loading" && (
           <p className="text-sm text-on-primary/70">
-            L&apos;agente sta cercando e analizzando gli articoli — può
-            richiedere alcuni minuti.
+            L&apos;agente sta elaborando — può richiedere alcuni minuti.
           </p>
         )}
 
@@ -167,7 +182,7 @@ export default function ResearchAgent() {
         {status === "success" && result && (
           <div className="rounded-lg bg-on-primary/5 p-5">
             <p className="font-serif text-lg font-semibold text-on-primary">
-              {result.titolo_saggio || "Saggio generato"}
+              {result.titolo_saggio || result.titolo || "Risultato generato"}
             </p>
             {typeof result.articoli_analizzati === "number" && (
               <p className="mt-1 text-xs uppercase tracking-wide text-on-primary/60">
@@ -183,6 +198,11 @@ export default function ResearchAgent() {
               >
                 Scarica il PDF
               </a>
+            )}
+            {!result.pdf && !result.titolo_saggio && !result.titolo && (
+              <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs text-on-primary/70">
+                {JSON.stringify(result, null, 2)}
+              </pre>
             )}
           </div>
         )}

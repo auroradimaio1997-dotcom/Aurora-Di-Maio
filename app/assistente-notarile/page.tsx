@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FileText, ClipboardCheck, Landmark } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
-import AgentSlot from "@/components/AgentSlot";
+import AgentForm from "@/components/AgentForm";
 import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
@@ -62,9 +62,11 @@ export default function AssistenteNotarilePage() {
       </div>
 
       <Reveal className="mt-14">
-        <AgentSlot
-          title="Agent Assistente Notarile, in arrivo"
-          description="Uno spazio riservato all'agent dedicato al lavoro in studio: supporto sulla modulistica, verifica pratiche e ricerca normativa."
+        <AgentForm
+          endpoint="/api/agente-notarile"
+          title="Agent Assistente Notarile"
+          description="Indica un tema notarile: l'agente lo elabora e prepara un documento in PDF. Richiede qualche minuto — resta su questa pagina. Verifica sempre il risultato prima di qualunque uso professionale."
+          temaPlaceholder="Es. la funzione notarile nella trasmissione ereditaria"
         />
       </Reveal>
     </section>

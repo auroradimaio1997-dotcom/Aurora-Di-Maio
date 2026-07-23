@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { GraduationCap, PenLine, BookMarked } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
-import ResearchAgent from "@/components/ResearchAgent";
+import AgentForm from "@/components/AgentForm";
 import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
@@ -62,7 +62,13 @@ export default function AccademiaPage() {
       </div>
 
       <Reveal className="mt-14">
-        <ResearchAgent />
+        <AgentForm
+          endpoint="/api/agente-ricerca"
+          title="Agent Accademia"
+          description="Indica un tema di diritto: l'agente cerca e analizza gli articoli pertinenti e prepara un saggio in PDF. Richiede qualche minuto — resta su questa pagina. Verifica sempre il risultato prima di qualunque uso accademico."
+          temaPlaceholder="Es. la responsabilità precontrattuale nel diritto civile italiano"
+          showExtraFields
+        />
       </Reveal>
     </section>
   );
