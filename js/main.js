@@ -3,59 +3,40 @@ document.getElementById('year').textContent = new Date().getFullYear();
 const essayForm = document.getElementById('essay-form');
 if (essayForm) {
   const topicField = document.getElementById('essay-topic');
-  const filesField = document.getElementById('essay-files');
-  const pasteField = document.getElementById('essay-paste');
+  const maxArticoliField = document.getElementById('essay-max-articoli');
+  const annoField = document.getElementById('essay-anno');
   const submitBtn = essayForm.querySelector('.essay-form__submit');
   const hint = document.getElementById('essay-hint');
   const result = document.getElementById('essay-result');
 
-  function readFileAsText(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => reject(new Error(`Impossibile leggere ${file.name}`));
-      reader.readAsText(file);
-    });
-  }
-
   essayForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const topic = topicField.value.trim();
-    const pasted = pasteField.value.trim();
-    const files = Array.from(filesField.files || []);
+    const tema = topicField.value.trim();
 
-    if (!topic) {
+    if (!tema) {
       essayForm.dataset.state = 'error';
-      hint.textContent = 'Indica un argomento di ricerca.';
+      hint.textContent = 'Indica un tema di ricerca.';
       topicField.focus();
-      return;
-    }
-
-    if (!pasted && files.length === 0) {
-      essayForm.dataset.state = 'error';
-      hint.textContent = 'Carica almeno un documento o incolla del testo: l\'assistente scrive solo dai tuoi materiali.';
       return;
     }
 
     essayForm.dataset.state = 'loading';
     submitBtn.disabled = true;
-    hint.textContent = 'Elaborazione in corso — può richiedere qualche istante…';
+    hint.textContent = "L'agente sta cercando e analizzando gli articoli — può richiedere alcuni minuti, resta su questa pagina…";
     result.hidden = true;
     result.textContent = '';
 
-    try {
-      const documents = [];
-      if (pasted) {
-        documents.push({ name: 'testo incollato', text: pasted });
-      }
-      for (const file of files) {
-        documents.push({ name: file.name, text: await readFileAsText(file) });
-      }
+    const payload = {
+      tema,
+      max_articoli: parseInt(maxArticoliField.value, 10) || 4,
+    };
+    if (annoField.value) payload.anno = parseInt(annoField.value, 10);
 
-      const res = await fetch('/api/genera-saggio', {
+    try {
+      const res = await fetch('/api/agente-ricerca', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, documents }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -64,9 +45,31 @@ if (essayForm) {
       }
 
       essayForm.dataset.state = 'success';
-      hint.textContent = 'Bozza generata. Verificane sempre le fonti prima di usarla.';
+      hint.textContent = 'Saggio generato. Verificalo sempre prima dell\'uso.';
       result.hidden = false;
-      result.textContent = data.essay;
+      result.innerHTML = '';
+
+      const titleEl = document.createElement('p');
+      titleEl.className = 'essay-result__title';
+      titleEl.textContent = data.titolo_saggio || 'Saggio generato';
+      result.appendChild(titleEl);
+
+      if (typeof data.articoli_analizzati === 'number') {
+        const metaEl = document.createElement('p');
+        metaEl.className = 'essay-result__meta';
+        metaEl.textContent = `${data.articoli_analizzati} articoli analizzati`;
+        result.appendChild(metaEl);
+      }
+
+      if (data.pdf) {
+        const link = document.createElement('a');
+        link.className = 'contact-link';
+        link.href = data.pdf;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Scarica il PDF';
+        result.appendChild(link);
+      }
     } catch (err) {
       essayForm.dataset.state = 'error';
       hint.textContent = err.message || 'Errore imprevisto. Riprova.';
@@ -75,12 +78,10 @@ if (essayForm) {
     }
   });
 
-  [topicField, pasteField].forEach((field) => {
-    field.addEventListener('input', () => {
-      if (essayForm.dataset.state === 'error') {
-        essayForm.dataset.state = '';
-        hint.textContent = '';
-      }
-    });
+  topicField.addEventListener('input', () => {
+    if (essayForm.dataset.state === 'error') {
+      essayForm.dataset.state = '';
+      hint.textContent = '';
+    }
   });
 }

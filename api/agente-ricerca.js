@@ -1,0 +1,103 @@
+// Vercel serverless function — Node runtime.
+//
+// Env var required (Vercel → Project → Settings → Environment Variables):
+//   CODEWORDS_API_KEY - the Bearer key for your Codewords agent
+//
+// This proxies the browser's request to your Codewords agent, keeping the
+// API key server-side only. Never call the Codewords endpoint directly
+// from client-side JS — that would expose the key to anyone viewing the
+// page source.
+//
+// NOTE on timeouts: the agent can take 3-5 minutes (up to 10). Vercel's
+// Hobby plan caps serverless functions at 60s, which is NOT enough — you
+// need a Pro plan (or higher) with `maxDuration` raised in vercel.json to
+// let this complete without timing out.
+
+const AGENT_URL = "https://runtime.codewords.ai/run/agente_ricerca_giuridica_0625ef04";
+const AGENT_TIMEOUT_MS = 9 * 60 * 1000;
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Metodo non consentito." });
+    return;
+  }
+
+  const apiKey = process.env.CODEWORDS_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ error: "CODEWORDS_API_KEY non configurata sul server." });
+    return;
+  }
+
+  let body = req.body;
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      body = {};
+    }
+  }
+
+  const tema = (body && body.tema ? String(body.tema) : "").trim();
+  if (!tema) {
+    res.status(400).json({ error: "Indica un tema di ricerca." });
+    return;
+  }
+  if (tema.length > 300) {
+    res.status(400).json({ error: "Tema troppo lungo (max 300 caratteri)." });
+    return;
+  }
+
+  let maxArticoli = parseInt(body && body.max_articoli, 10);
+  if (!Number.isFinite(maxArticoli) || maxArticoli < 1) maxArticoli = 4;
+  if (maxArticoli > 10) maxArticoli = 10;
+
+  const payload = { tema, max_articoli: maxArticoli };
+
+  const anno = parseInt(body && body.anno, 10);
+  if (Number.isFinite(anno)) payload.anno = anno;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(AGENT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      res.status(502).json({ error: `Errore dall'agente: ${errText.slice(0, 300)}` });
+      return;
+    }
+
+    const data = await response.json();
+    res.status(200).json({
+      pdf: data.pdf,
+      titolo_saggio: data.titolo_saggio,
+      articoli_analizzati: data.articoli_analizzati,
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      res.status(504).json({ error: "L'agente non ha risposto in tempo. Riprova più tardi." });
+    } else {
+      res.status(500).json({ error: "Errore interno nel contattare l'agente." });
+    }
+  } finally {
+    clearTimeout(timeout);
+  }
+};

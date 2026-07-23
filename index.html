@@ -129,35 +129,33 @@
   <p class="section__tag">Area accademica</p>
   <h2 class="section__title">Assistente di ricerca</h2>
   <p class="section__body">
-    Carica o incolla i materiali che hai già raccolto tu (es. estratti scaricati da OneLegale o da
-    altre tue fonti): l'assistente scrive una bozza di saggio usando <em>solo</em> quei documenti,
-    senza consultare banche dati esterne né usare conoscenza generale. Se i documenti non coprono
-    un punto, lo segnala invece di inventarlo. Ogni bozza va sempre verificata prima dell'uso.
+    Indica un tema di diritto: l'agente cerca e analizza gli articoli pertinenti e prepara un saggio
+    completo in PDF. L'elaborazione richiede qualche minuto — resta su questa pagina fino al termine.
+    Ogni bozza va sempre verificata prima dell'uso.
   </p>
 
   <form class="essay-form" id="essay-form" novalidate>
-    <label class="essay-form__label" for="essay-topic">Argomento di ricerca</label>
+    <label class="essay-form__label" for="essay-topic">Tema di ricerca</label>
     <textarea
       class="essay-form__input"
       id="essay-topic"
-      name="topic"
+      name="tema"
       rows="2"
       maxlength="300"
       placeholder="Es. la responsabilità precontrattuale nel diritto civile italiano"
       required
     ></textarea>
 
-    <label class="essay-form__label" for="essay-files">Documenti (.txt/.md — i tuoi estratti)</label>
-    <input class="essay-form__file" id="essay-files" name="files" type="file" accept=".txt,.md" multiple />
-
-    <label class="essay-form__label" for="essay-paste">Oppure incolla qui il testo</label>
-    <textarea
-      class="essay-form__input"
-      id="essay-paste"
-      name="paste"
-      rows="5"
-      placeholder="Incolla qui l'estratto copiato dal tuo documento…"
-    ></textarea>
+    <div class="essay-form__grid">
+      <div>
+        <label class="essay-form__label" for="essay-max-articoli">Numero articoli</label>
+        <input class="essay-form__number" id="essay-max-articoli" name="max_articoli" type="number" min="1" max="10" value="4" />
+      </div>
+      <div>
+        <label class="essay-form__label" for="essay-anno">Anno (opzionale)</label>
+        <input class="essay-form__number" id="essay-anno" name="anno" type="number" min="1950" max="2100" placeholder="es. 2024" />
+      </div>
+    </div>
 
     <div class="essay-form__row">
       <button class="essay-form__submit" type="submit">
