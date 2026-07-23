@@ -1,12 +1,15 @@
 // Vercel serverless function — Node runtime.
 //
 // Env var required (Vercel → Project → Settings → Environment Variables):
-//   CODEWORDS_COORDINATORE_API_KEY - the Bearer key for this Codewords agent
+//   N8N_COORDINATORE_SECRET - the shared secret checked by the n8n
+//     workflow's "Verifica chiave" node
 //
-// The key stays server-side only — never reference it from client code.
+// Replaces the earlier Codewords-based coordinatore: this now calls the
+// user's own n8n workflow (webhook → auth check → AI Agent → respond).
+// The secret stays server-side only — never reference it from client code.
 
-const AGENT_URL = "https://runtime.codewords.ai/run/aurora_coordinatore_32365994";
-const AGENT_TIMEOUT_MS = 9 * 60 * 1000;
+const AGENT_URL = "https://auroradimaio.app.n8n.cloud/webhook/aurora-coordinatore";
+const AGENT_TIMEOUT_MS = 60 * 1000;
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -23,9 +26,9 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.CODEWORDS_COORDINATORE_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: "CODEWORDS_COORDINATORE_API_KEY non configurata sul server." });
+  const secret = process.env.N8N_COORDINATORE_SECRET;
+  if (!secret) {
+    res.status(500).json({ error: "N8N_COORDINATORE_SECRET non configurata sul server." });
     return;
   }
 
@@ -56,7 +59,7 @@ module.exports = async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": secret,
       },
       body: JSON.stringify({ message }),
       signal: controller.signal,
