@@ -6,7 +6,6 @@ import { Menu, X } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/dottorato", label: "Dottorato" },
   { href: "/assistente-notarile", label: "Assistente Notarile" },
   { href: "/accademia", label: "Accademia" },
 ];

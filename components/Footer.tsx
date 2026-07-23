@@ -18,7 +18,7 @@ export default function Footer() {
           <p className="mb-3 font-medium text-foreground">Sezioni</p>
           <ul className="space-y-2 text-secondary">
             <li>
-              <Link href="/dottorato" className="hover:text-accent">
+              <Link href="/accademia/dottorato" className="hover:text-accent">
                 Dottorato
               </Link>
             </li>
