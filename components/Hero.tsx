@@ -41,11 +41,11 @@ export default function Hero() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="mx-auto flex max-w-4xl flex-col items-center gap-10 px-6 py-16 text-center"
+        className="mx-auto flex max-w-5xl flex-col items-center gap-12 px-6 py-16 text-center"
       >
         <motion.h1
           variants={item}
-          className="font-serif text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl"
+          className="font-serif text-6xl font-semibold leading-[1.05] tracking-tight md:text-8xl"
         >
           <span className="text-accent">AI</span>{" "}
           <span className="text-foreground">AURORA STUDIO</span>
