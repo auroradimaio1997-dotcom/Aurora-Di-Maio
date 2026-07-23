@@ -1,0 +1,89 @@
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 15 23 42;
+  --color-on-primary: 255 255 255;
+  --color-secondary: 51 65 85;
+  --color-accent: 3 105 161;
+  --color-background: 248 250 252;
+  --color-foreground: 2 6 23;
+  --color-muted: 232 236 241;
+  --color-border: 226 232 240;
+  --color-destructive: 220 38 38;
+  --color-ring: 15 23 42;
+
+  --font-heading: "EB Garamond", serif;
+  --font-body: "Lato", sans-serif;
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 96px;
+}
+
+.dark {
+  --color-primary: 226 232 240;
+  --color-on-primary: 15 23 42;
+  --color-secondary: 148 163 184;
+  --color-accent: 56 189 248;
+  --color-background: 2 6 23;
+  --color-foreground: 241 245 249;
+  --color-muted: 15 23 42;
+  --color-border: 30 41 59;
+  --color-destructive: 248 113 113;
+  --color-ring: 226 232 240;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-primary: 226 232 240;
+    --color-on-primary: 15 23 42;
+    --color-secondary: 148 163 184;
+    --color-accent: 56 189 248;
+    --color-background: 2 6 23;
+    --color-foreground: 241 245 249;
+    --color-muted: 15 23 42;
+    --color-border: 30 41 59;
+    --color-destructive: 248 113 113;
+    --color-ring: 226 232 240;
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
