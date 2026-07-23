@@ -1,0 +1,53 @@
+/* Hallmark · tokens · theme: Lumen (classical-serif · light · warm) */
+:root {
+  /* --- color: paper & ink --- */
+  --color-paper: oklch(97.5% 0.012 80);
+  --color-paper-2: oklch(94% 0.018 75);
+  --color-paper-3: oklch(90% 0.02 70);
+  --color-ink: oklch(22% 0.02 55);
+  --color-ink-soft: oklch(40% 0.02 55);
+  --color-ink-faint: oklch(58% 0.015 55);
+
+  /* --- color: accent (warm academic burgundy) --- */
+  --color-accent: oklch(38% 0.11 25);
+  --color-accent-2: oklch(48% 0.13 30);
+  --color-accent-soft: oklch(90% 0.03 30);
+  --color-focus: oklch(52% 0.15 260);
+
+  /* --- fonts --- */
+  --font-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: "Source Serif 4", "Georgia", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* --- type scale --- */
+  --text-display: clamp(3.2rem, 12vw + 1rem, 10rem);
+  --text-display-s: clamp(2.4rem, 8vw + 1rem, 6rem);
+  --text-4xl: clamp(1.8rem, 4vw + 1rem, 3rem);
+  --text-2xl: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+
+  /* --- spacing (4pt scale) --- */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+  --space-3xl: 9rem;
+
+  /* --- motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-md: 400ms;
+  --dur-slow: 900ms;
+
+  /* --- rules / radius --- */
+  --rule-hairline: 1px solid oklch(70% 0.02 55 / 0.4);
+  --radius-sm: 4px;
+  --radius-md: 10px;
+}
