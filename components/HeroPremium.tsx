@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { GraduationCap, Landmark, Scale } from "lucide-react";
 import ParticleField from "./ParticleField";
 import CinematicIntro from "./CinematicIntro";
-import PremiumAvatar, { type AvatarState } from "./PremiumAvatar";
+import AuroraCharacter, { type CharacterState } from "./character/AuroraCharacter";
 
 const AREAS = [
   {
@@ -31,7 +31,7 @@ const AREAS = [
 
 export default function HeroPremium() {
   const [entered, setEntered] = useState(false);
-  const [cornerState, setCornerState] = useState<AvatarState>("idle");
+  const [cornerState, setCornerState] = useState<CharacterState>("idle");
 
   return (
     <div className="relative">
@@ -105,7 +105,7 @@ export default function HeroPremium() {
             }
           }}
         >
-          <PremiumAvatar layoutId="hero-avatar" state={cornerState} size={84} />
+          <AuroraCharacter layoutId="aurora-character" state={cornerState} size={84} />
         </motion.div>
       )}
     </div>

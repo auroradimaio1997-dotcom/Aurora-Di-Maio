@@ -2,39 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { GraduationCap, Library, Stamp } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import PremiumAvatar, { type AvatarState } from "./PremiumAvatar";
+import AuroraCharacter, { type CharacterState } from "./character/AuroraCharacter";
 
 type Scene = {
   key: string;
-  icon: LucideIcon;
-  title: string;
+  label: string;
   lines: string[];
-  avatarState: AvatarState;
+  state: CharacterState;
 };
 
 const SCENES: Scene[] = [
   {
     key: "laurea",
-    icon: GraduationCap,
-    title: "Laurea",
+    label: "Laurea",
     lines: ["La corona d'alloro.", "La pergamena. Il primo traguardo."],
-    avatarState: "smiling",
+    state: "smiling",
   },
   {
     key: "dottorato",
-    icon: Library,
-    title: "Dottorato",
+    label: "Dottorato",
     lines: ["Biblioteca, notte fonda.", "Ricerca, scrittura, riferimenti giuridici."],
-    avatarState: "writing",
+    state: "writing",
   },
   {
     key: "notaio",
-    icon: Stamp,
-    title: "Notaio",
+    label: "Notaio",
     lines: ["La firma. Il sigillo.", "ATTO AUTENTICATO"],
-    avatarState: "thinking",
+    state: "stamping",
   },
 ];
 
@@ -77,14 +71,11 @@ export default function CinematicIntro({
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-6"
           >
-            <PremiumAvatar layoutId="hero-avatar" state={scene.avatarState} size={200} />
+            <AuroraCharacter layoutId="aurora-character" state={scene.state} size={200} />
 
-            <div className="flex items-center gap-2 text-gold">
-              <scene.icon size={18} aria-hidden="true" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-                {scene.title}
-              </span>
-            </div>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+              {scene.label}
+            </span>
 
             <div className="space-y-1">
               {scene.lines.map((line, i) => (
@@ -109,7 +100,7 @@ export default function CinematicIntro({
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center gap-8"
           >
-            <PremiumAvatar layoutId="hero-avatar" state="waving" size={200} />
+            <AuroraCharacter layoutId="aurora-character" state="waving" size={200} />
 
             <div>
               <h1 className="font-serif text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
