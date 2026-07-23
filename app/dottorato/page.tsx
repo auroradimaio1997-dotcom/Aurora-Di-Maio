@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Library, FileStack, NotebookPen } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
 import AgentSlot from "@/components/AgentSlot";
-import AnimatedBooks from "@/components/AnimatedBooks";
+import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -12,16 +12,19 @@ export const metadata: Metadata = {
 const resources = [
   {
     icon: Library,
+    iconName: "Library" as const,
     title: "Bibliografia",
     description: "Fonti, articoli e testi raccolti per la ricerca di dottorato.",
   },
   {
     icon: FileStack,
+    iconName: "FileStack" as const,
     title: "Capitoli di tesi",
     description: "Stato di avanzamento e bozze dei capitoli in lavorazione.",
   },
   {
     icon: NotebookPen,
+    iconName: "NotebookPen" as const,
     title: "Appunti seminari",
     description: "Note da seminari, convegni e incontri di dottorato.",
   },
@@ -40,7 +43,14 @@ export default function DottoratoPage() {
             corso per il percorso di dottorato.
           </p>
         </div>
-        <AnimatedBooks variant="dottorato" />
+        <AreaStoryPlayer
+          theme="dottorato"
+          scenes={resources.map((r) => ({
+            iconName: r.iconName,
+            label: r.title,
+            sub: r.description,
+          }))}
+        />
       </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">

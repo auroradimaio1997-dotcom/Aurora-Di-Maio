@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FileText, ClipboardCheck, Landmark } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
 import AgentSlot from "@/components/AgentSlot";
-import AnimatedBooks from "@/components/AnimatedBooks";
+import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -12,16 +12,19 @@ export const metadata: Metadata = {
 const resources = [
   {
     icon: FileText,
+    iconName: "FileText" as const,
     title: "Modulistica",
     description: "Modelli e bozze di atti e documenti usati in studio.",
   },
   {
     icon: ClipboardCheck,
+    iconName: "ClipboardCheck" as const,
     title: "Procedure pratiche",
     description: "Passaggi e checklist per la gestione delle pratiche.",
   },
   {
     icon: Landmark,
+    iconName: "Landmark" as const,
     title: "Normativa di riferimento",
     description: "Riferimenti normativi e aggiornamenti utili al lavoro.",
   },
@@ -40,7 +43,14 @@ export default function AssistenteNotarilePage() {
             lavoro quotidiano in studio.
           </p>
         </div>
-        <AnimatedBooks variant="notarile" />
+        <AreaStoryPlayer
+          theme="notarile"
+          scenes={resources.map((r) => ({
+            iconName: r.iconName,
+            label: r.title,
+            sub: r.description,
+          }))}
+        />
       </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">

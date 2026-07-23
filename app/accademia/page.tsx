@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GraduationCap, PenLine, BookMarked } from "lucide-react";
 import ResourceCard from "@/components/ResourceCard";
 import AgentSlot from "@/components/AgentSlot";
-import AnimatedBooks from "@/components/AnimatedBooks";
+import AreaStoryPlayer from "@/components/remotion/AreaStoryPlayer";
 import Reveal from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -12,16 +12,19 @@ export const metadata: Metadata = {
 const resources = [
   {
     icon: GraduationCap,
+    iconName: "GraduationCap" as const,
     title: "Tesi",
     description: "Materiali, bozze e stato di avanzamento della tesi.",
   },
   {
     icon: PenLine,
+    iconName: "PenLine" as const,
     title: "Saggi",
     description: "Saggi in scrittura o pubblicati, con note e revisioni.",
   },
   {
     icon: BookMarked,
+    iconName: "BookMarked" as const,
     title: "Monografie",
     description: "Monografie di riferimento e progetti editoriali.",
   },
@@ -40,7 +43,14 @@ export default function AccademiaPage() {
             accademica.
           </p>
         </div>
-        <AnimatedBooks variant="accademia" />
+        <AreaStoryPlayer
+          theme="accademia"
+          scenes={resources.map((r) => ({
+            iconName: r.iconName,
+            label: r.title,
+            sub: r.description,
+          }))}
+        />
       </Reveal>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">

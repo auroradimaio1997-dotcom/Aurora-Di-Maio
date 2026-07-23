@@ -9,11 +9,15 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@remotion/cli": "^4.0.497",
+    "@remotion/media-utils": "^4.0.497",
+    "@remotion/player": "^4.0.497",
     "framer-motion": "^12.42.2",
     "lucide-react": "0.469.0",
     "next": "16.2.11",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "remotion": "^4.0.497"
   },
   "devDependencies": {
     "@types/node": "22.10.2",
