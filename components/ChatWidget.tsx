@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Loader2, Send } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 type Message = {
   role: "user" | "aurora";
@@ -80,7 +81,15 @@ export default function ChatWidget() {
                 : "border bg-background text-foreground"
             }`}
           >
-            {m.text}
+            {m.role === "aurora" ? (
+              <div
+                className="space-y-2 [&_a]:text-gold [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+              >
+                <ReactMarkdown>{m.text}</ReactMarkdown>
+              </div>
+            ) : (
+              m.text
+            )}
           </div>
         ))}
 
