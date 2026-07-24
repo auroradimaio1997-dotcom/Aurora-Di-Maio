@@ -1,20 +1,182 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Send } from "lucide-react";
-import { listMessages, postMessage } from "@/lib/practices/api";
-import type { Practice, PracticeMessage } from "@/lib/practices/types";
+import { ChevronDown, ChevronRight, Loader2, Plus, Send, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import {
+  createTemplate,
+  deleteTemplate,
+  listMessages,
+  listTemplates,
+  postMessage,
+} from "@/lib/practices/api";
+import type { Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+
+function SchemaSection({
+  practiceType,
+  activeTemplateId,
+  onActiveTemplateChange,
+}: {
+  practiceType: string;
+  activeTemplateId: string | null;
+  onActiveTemplateChange: (template: PracticeTemplate | null) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [notConfigured, setNotConfigured] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    listTemplates(practiceType)
+      .then(({ templates }) => {
+        if (!cancelled) setTemplates(templates);
+      })
+      .catch((err) => {
+        if (!cancelled && err?.name === "PracticeStorageNotConfiguredError") {
+          setNotConfigured(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [practiceType]);
+
+  async function handleSave() {
+    if (!title.trim() || !content.trim()) return;
+    const { template } = await createTemplate({ practiceType, title: title.trim(), content: content.trim() });
+    setTemplates((prev) => [template, ...prev]);
+    setTitle("");
+    setContent("");
+    setShowForm(false);
+    onActiveTemplateChange(template);
+  }
+
+  async function handleDelete(templateId: string) {
+    if (!window.confirm("Eliminare questo schema?")) return;
+    await deleteTemplate(templateId);
+    setTemplates((prev) => prev.filter((t) => t.template_id !== templateId));
+    if (activeTemplateId === templateId) onActiveTemplateChange(null);
+  }
+
+  return (
+    <div className="mb-3 rounded-lg border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <span>Schema di riferimento ({templates.length})</span>
+        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </button>
+
+      {open && (
+        <div className="border-t p-3 text-xs">
+          {notConfigured && (
+            <p className="mb-2 text-secondary">Archiviazione permanente in preparazione.</p>
+          )}
+
+          {templates.length === 0 && !showForm && (
+            <p className="mb-2 text-secondary">
+              Nessuno schema salvato per &quot;{practiceType}&quot;. Aggiungine uno per far
+              seguire alla chat il tuo modello quando scrive un atto.
+            </p>
+          )}
+
+          <div className="mb-2 space-y-1">
+            {templates.map((t) => (
+              <div
+                key={t.template_id}
+                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
+                  activeTemplateId === t.template_id ? "bg-muted" : "hover:bg-muted/60"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    onActiveTemplateChange(activeTemplateId === t.template_id ? null : t)
+                  }
+                  className="flex-1 truncate text-left text-foreground"
+                >
+                  {activeTemplateId === t.template_id ? "✓ " : ""}
+                  {t.title}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(t.template_id)}
+                  className="text-secondary hover:text-destructive"
+                  aria-label="Elimina schema"
+                >
+                  <Trash2 size={12} aria-hidden="true" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {showForm ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Nome schema (es. Donazione immobiliare)"
+                className="w-full rounded-md border bg-background px-2 py-1.5 text-foreground"
+              />
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={6}
+                placeholder="Incolla qui il testo del tuo modello, con segnaposto tra parentesi quadre…"
+                className="w-full resize-none rounded-md border bg-background px-2 py-1.5 text-foreground"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="flex-1 rounded-full bg-blue-600 py-1.5 font-semibold text-white"
+                >
+                  Salva schema
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="rounded-full border px-3 py-1.5 text-secondary"
+                >
+                  Annulla
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-secondary hover:bg-muted"
+            >
+              <Plus size={12} aria-hidden="true" />
+              Aggiungi schema
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
- * Chat scoped to a single practice. Persists real messages via the
- * practices API (Supabase) — no specialist agent is wired yet, so the
- * assistant side stays an honest "Agente in preparazione" placeholder
- * rather than a simulated AI answer.
+ * Chat scoped to a single practice. Real drafting assistant — routes
+ * through the same Aurora coordinatore agent (n8n) used by the general
+ * chat, optionally primed with the active schema/template the user
+ * selected, so the draft it writes follows her own model. Every message
+ * is persisted to the practice via Supabase.
  */
 export default function PracticeWorkspace({ practice }: { practice: Practice }) {
   const [messages, setMessages] = useState<PracticeMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "not-configured" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [activeTemplate, setActiveTemplate] = useState<PracticeTemplate | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,22 +205,41 @@ export default function PracticeWorkspace({ practice }: { practice: Practice }) 
     if (!text || status === "loading") return;
     setInput("");
     setStatus("loading");
+    setErrorMsg("");
+
     try {
       const { message: userMessage } = await postMessage(practice.practice_id, {
         role: "user",
         text,
       });
+      setMessages((prev) => [...prev, userMessage]);
+
+      const contextualMessage = activeTemplate
+        ? `Segui questo schema come modello per la redazione:\n\n${activeTemplate.content}\n\nRichiesta: ${text}`
+        : text;
+
+      const res = await fetch("/api/agente-coordinatore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: contextualMessage }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Errore nella risposta.");
+      }
+
       const { message: auroraMessage } = await postMessage(practice.practice_id, {
         role: "aurora",
-        text: `Agente specialistico (${practice.agent_id}) in preparazione — il messaggio è stato salvato nella pratica.`,
+        text: data.risposta || "Nessuna risposta ricevuta.",
       });
-      setMessages((prev) => [...prev, userMessage, auroraMessage]);
+      setMessages((prev) => [...prev, auroraMessage]);
       setStatus("idle");
     } catch (err) {
       if (err instanceof Error && err.name === "PracticeStorageNotConfiguredError") {
         setStatus("not-configured");
       } else {
         setStatus("error");
+        setErrorMsg(err instanceof Error ? err.message : "Errore imprevisto. Riprova.");
       }
     }
   }
@@ -79,9 +260,18 @@ export default function PracticeWorkspace({ practice }: { practice: Practice }) 
         </p>
       )}
 
+      <SchemaSection
+        practiceType={practice.practice_type}
+        activeTemplateId={activeTemplate?.template_id ?? null}
+        onActiveTemplateChange={setActiveTemplate}
+      />
+
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
         {messages.length === 0 && (
-          <p className="text-sm text-secondary">Nessun messaggio ancora in questa pratica.</p>
+          <p className="text-sm text-secondary">
+            Scrivi qui per redigere l&apos;atto. Se hai selezionato uno schema sopra, la
+            bozza lo seguirà.
+          </p>
         )}
         {messages.map((m) =>
           m.role === "user" ? (
@@ -91,11 +281,20 @@ export default function PracticeWorkspace({ practice }: { practice: Practice }) 
               </div>
             </div>
           ) : (
-            <p key={m.message_id} className="max-w-[85ch] text-[15px] leading-7 text-foreground">
-              {m.text}
-            </p>
+            <div key={m.message_id} className="max-w-[85ch] select-text text-[15px] leading-7 text-foreground">
+              <div className="space-y-2 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
+                <ReactMarkdown>{m.text}</ReactMarkdown>
+              </div>
+            </div>
           )
         )}
+        {status === "loading" && (
+          <div className="flex items-center gap-2 text-sm text-secondary">
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            Sto scrivendo…
+          </div>
+        )}
+        {status === "error" && <p className="text-sm text-destructive">{errorMsg}</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="mt-3 flex items-center gap-2 rounded-full border bg-background px-2 py-2">

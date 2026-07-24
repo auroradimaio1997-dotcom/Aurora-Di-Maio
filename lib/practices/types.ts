@@ -74,3 +74,12 @@ export type PracticeMessage = {
   document_id: string | null;
   created_at: string;
 };
+
+export type PracticeTemplate = {
+  template_id: string;
+  practice_type: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+};

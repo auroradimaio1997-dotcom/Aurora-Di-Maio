@@ -1,4 +1,4 @@
-import type { Practice, PracticeDocument, PracticeMessage } from "./types";
+import type { Practice, PracticeDocument, PracticeMessage, PracticeTemplate } from "./types";
 
 export class PracticeStorageNotConfiguredError extends Error {
   constructor() {
@@ -96,6 +96,26 @@ export function postMessage(
       body: JSON.stringify(input),
     }
   );
+}
+
+export function listTemplates(practiceType: string) {
+  return request<{ templates: PracticeTemplate[] }>(
+    `/api/practice-templates?practiceType=${encodeURIComponent(practiceType)}`
+  );
+}
+
+export function createTemplate(input: { practiceType: string; title: string; content: string }) {
+  return request<{ template: PracticeTemplate }>("/api/practice-templates", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteTemplate(templateId: string) {
+  return request<{ ok: true }>(`/api/practice-templates/${templateId}`, {
+    method: "DELETE",
+  });
 }
 
 export function readFileAsBase64(file: File): Promise<string> {
