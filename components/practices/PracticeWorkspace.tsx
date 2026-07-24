@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   ClipboardCheck,
   Copy,
@@ -16,6 +17,7 @@ import {
   Plus,
   Send,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import {
@@ -813,46 +815,23 @@ export default function PracticeWorkspace({
   }
 
   return (
-    <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
-      <div className="mb-3 border-b pb-3">
-        <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-secondary">
-          <span>{practice.practice_type} · {practice.area} ·</span>
-          <select
-            value={practice.status}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            disabled={statusSaving}
-            className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-foreground disabled:opacity-60"
-          >
-            {PRACTICE_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          {statusSaving && <Loader2 size={12} className="animate-spin" aria-hidden="true" />}
-        </div>
-      </div>
+    <div className="flex h-full min-w-0 flex-1 overflow-hidden">
+      {sectionsOpen ? (
+        <div className="flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r bg-background p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Carica documenti</h3>
+            <button
+              type="button"
+              onClick={() => setSectionsOpen(false)}
+              className="rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
+              aria-label="Richiudi carica documenti"
+            >
+              <ChevronLeft size={16} aria-hidden="true" />
+            </button>
+          </div>
 
-      {status === "not-configured" && (
-        <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">
-          Archiviazione permanente in preparazione — il database non è ancora
-          collegato sul server.
-        </p>
-      )}
-
-      <button
-        type="button"
-        onClick={() => setSectionsOpen((v) => !v)}
-        className="mb-2 flex w-full shrink-0 items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
-      >
-        <span>Documenti e riferimenti della pratica</span>
-        {sectionsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-      </button>
-
-      {sectionsOpen && (
-      <div className="max-h-56 shrink-0 space-y-0 overflow-y-auto pr-1">
-        <CategoryUploadSection
+          <div className="space-y-0">
+            <CategoryUploadSection
           label="Dottrina e giurisprudenza di riferimento"
           category="Dottrina e Giurisprudenza"
           practiceId={practice.practice_id}
@@ -934,19 +913,57 @@ export default function PracticeWorkspace({
           </>
         )}
 
-        <ClausoleAggiuntiveSection
-          practiceId={practice.practice_id}
-          value={clausoleAggiuntive}
-          onChange={setClausoleAggiuntive}
-          savedValue={savedClausoleAggiuntive}
-          onSaved={setSavedClausoleAggiuntive}
-        />
-      </div>
+            <ClausoleAggiuntiveSection
+              practiceId={practice.practice_id}
+              value={clausoleAggiuntive}
+              onChange={setClausoleAggiuntive}
+              savedValue={savedClausoleAggiuntive}
+              onSaved={setSavedClausoleAggiuntive}
+            />
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setSectionsOpen(true)}
+          className="flex h-full w-10 shrink-0 items-center justify-center border-r text-secondary hover:bg-muted hover:text-foreground"
+          aria-label="Apri carica documenti"
+        >
+          <Upload size={16} aria-hidden="true" />
+        </button>
       )}
 
-      {openActText && <ActViewerModal text={openActText} onClose={() => setOpenActText(null)} />}
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
+        <div className="mb-3 border-b pb-3">
+          <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-secondary">
+            <span>{practice.practice_type} · {practice.area} ·</span>
+            <select
+              value={practice.status}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              disabled={statusSaving}
+              className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-foreground disabled:opacity-60"
+            >
+              {PRACTICE_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            {statusSaving && <Loader2 size={12} className="animate-spin" aria-hidden="true" />}
+          </div>
+        </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
+        {status === "not-configured" && (
+          <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">
+            Archiviazione permanente in preparazione — il database non è ancora
+            collegato sul server.
+          </p>
+        )}
+
+        {openActText && <ActViewerModal text={openActText} onClose={() => setOpenActText(null)} />}
+
+        <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
         {messages.length === 0 && (
           <p className="text-sm text-secondary">
             Scrivi qui per redigere l&apos;atto. Se hai selezionato uno schema sopra, la
@@ -1033,6 +1050,7 @@ export default function PracticeWorkspace({
           )}
         </button>
       </form>
+      </div>
     </div>
   );
 }
