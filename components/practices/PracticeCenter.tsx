@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { PanelLeft } from "lucide-react";
 import { listPractices, PracticeStorageNotConfiguredError } from "@/lib/practices/api";
-import type { Practice } from "@/lib/practices/types";
+import type { DocumentCategory, Practice } from "@/lib/practices/types";
 import NewPracticeModal from "./NewPracticeModal";
 import PracticeSidebar from "./PracticeSidebar";
 import PracticeWorkspace from "./PracticeWorkspace";
@@ -34,6 +34,13 @@ export default function PracticeCenter({
   const [mobileView, setMobileView] = useState<"practices" | "chat" | "documents">("chat");
   const [docsCollapsed, setDocsCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingVisuraCategory, setPendingVisuraCategory] = useState<DocumentCategory | null>(null);
+
+  function handleOpenVisuraPortal(category: DocumentCategory) {
+    setPendingVisuraCategory(category);
+    setDocsCollapsed(false);
+    setMobileView("documents");
+  }
 
   useEffect(() => {
     listPractices()
@@ -126,7 +133,7 @@ export default function PracticeCenter({
         )}
         {mobileView === "chat" &&
           (selected ? (
-            <PracticeWorkspace practice={selected} />
+            <PracticeWorkspace practice={selected} onOpenVisuraPortal={handleOpenVisuraPortal} />
           ) : (
             <p className="p-4 text-sm text-secondary">Seleziona o crea una pratica.</p>
           ))}
@@ -136,6 +143,8 @@ export default function PracticeCenter({
               practiceId={selected.practice_id}
               collapsed={false}
               onToggleCollapsed={() => {}}
+              pendingVisuraCategory={pendingVisuraCategory}
+              onClearPendingVisura={() => setPendingVisuraCategory(null)}
             />
           ) : (
             <p className="p-4 text-sm text-secondary">Seleziona una pratica.</p>
@@ -146,11 +155,13 @@ export default function PracticeCenter({
       <div className="hidden flex-1 md:flex">
         {selected ? (
           <>
-            <PracticeWorkspace practice={selected} />
+            <PracticeWorkspace practice={selected} onOpenVisuraPortal={handleOpenVisuraPortal} />
             <DocumentsPanel
               practiceId={selected.practice_id}
               collapsed={docsCollapsed}
               onToggleCollapsed={() => setDocsCollapsed((v) => !v)}
+              pendingVisuraCategory={pendingVisuraCategory}
+              onClearPendingVisura={() => setPendingVisuraCategory(null)}
             />
           </>
         ) : (

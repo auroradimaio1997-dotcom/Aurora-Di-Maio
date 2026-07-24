@@ -22,7 +22,7 @@ function SchemaSection({
   activeTemplateId: string | null;
   onActiveTemplateChange: (template: PracticeTemplate | null) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
@@ -203,7 +203,51 @@ function SchemaSection({
  * selected, so the draft it writes follows her own model. Every message
  * is persisted to the practice via Supabase.
  */
-export default function PracticeWorkspace({ practice }: { practice: Practice }) {
+const SMARTACCESS_URL = "https://webrun.notariato.it/smartaccess/";
+
+function VisureHub({ onOpenPortal }: { onOpenPortal: (category: "Visure ipocatastali" | "Visure camerali") => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-3 rounded-lg border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <span>Visure</span>
+        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </button>
+
+      {open && (
+        <div className="flex gap-2 border-t p-3 text-xs">
+          <button
+            type="button"
+            onClick={() => onOpenPortal("Visure ipocatastali")}
+            className="flex-1 rounded-full border px-3 py-2 font-medium text-foreground hover:bg-muted"
+          >
+            Visura ipocatastale
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenPortal("Visure camerali")}
+            className="flex-1 rounded-full border px-3 py-2 font-medium text-foreground hover:bg-muted"
+          >
+            Visura camerale
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function PracticeWorkspace({
+  practice,
+  onOpenVisuraPortal,
+}: {
+  practice: Practice;
+  onOpenVisuraPortal: (category: "Visure ipocatastali" | "Visure camerali") => void;
+}) {
   const [messages, setMessages] = useState<PracticeMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "not-configured" | "error">("idle");
@@ -298,6 +342,13 @@ export default function PracticeWorkspace({ practice }: { practice: Practice }) 
           collegato sul server.
         </p>
       )}
+
+      <VisureHub
+        onOpenPortal={(category) => {
+          window.open(SMARTACCESS_URL, "_blank", "noopener");
+          onOpenVisuraPortal(category);
+        }}
+      />
 
       <SchemaSection
         practiceType={practice.practice_type}

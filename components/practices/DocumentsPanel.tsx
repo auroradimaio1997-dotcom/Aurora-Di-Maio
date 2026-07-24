@@ -19,15 +19,17 @@ function formatSize(bytes: number) {
 
 function AcquireDocumentForm({
   practiceId,
+  initialCategory,
   onUploaded,
   onClose,
 }: {
   practiceId: string;
+  initialCategory?: DocumentCategory;
   onUploaded: (doc: PracticeDocument) => void;
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [category, setCategory] = useState<DocumentCategory>("Altro");
+  const [category, setCategory] = useState<DocumentCategory>(initialCategory ?? "Altro");
   const [status, setStatus] = useState<"idle" | "uploading" | "error" | "not-configured">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -104,14 +106,19 @@ export default function DocumentsPanel({
   practiceId,
   collapsed,
   onToggleCollapsed,
+  pendingVisuraCategory,
+  onClearPendingVisura,
 }: {
   practiceId: string;
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  pendingVisuraCategory?: DocumentCategory | null;
+  onClearPendingVisura?: () => void;
 }) {
   const [documents, setDocuments] = useState<PracticeDocument[]>([]);
   const [notConfigured, setNotConfigured] = useState(false);
   const [showAcquire, setShowAcquire] = useState(false);
+  const [acquireCategory, setAcquireCategory] = useState<DocumentCategory | undefined>(undefined);
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -179,19 +186,46 @@ export default function DocumentsPanel({
         </p>
       )}
 
+      {pendingVisuraCategory && !showAcquire && (
+        <div className="mb-3 rounded-lg border border-blue-600/40 bg-blue-600/10 p-3 text-xs">
+          <p className="mb-2 text-foreground">
+            Hai scaricato la {pendingVisuraCategory.toLowerCase()}? Caricala qui.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setAcquireCategory(pendingVisuraCategory);
+              setShowAcquire(true);
+            }}
+            className="w-full rounded-full bg-blue-600 py-1.5 font-semibold text-white hover:bg-blue-700"
+          >
+            Carica la visura
+          </button>
+        </div>
+      )}
+
       {showAcquire ? (
         <AcquireDocumentForm
           practiceId={practiceId}
-          onClose={() => setShowAcquire(false)}
+          initialCategory={acquireCategory}
+          onClose={() => {
+            setShowAcquire(false);
+            onClearPendingVisura?.();
+          }}
           onUploaded={(doc) => {
             setDocuments((prev) => [doc, ...prev]);
             setShowAcquire(false);
+            setAcquireCategory(undefined);
+            onClearPendingVisura?.();
           }}
         />
       ) : (
         <button
           type="button"
-          onClick={() => setShowAcquire(true)}
+          onClick={() => {
+            setAcquireCategory(undefined);
+            setShowAcquire(true);
+          }}
           className="mb-3 flex items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
           <Upload size={13} aria-hidden="true" />
