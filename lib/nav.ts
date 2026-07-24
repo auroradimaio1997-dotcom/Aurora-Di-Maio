@@ -18,7 +18,8 @@ export type NavSection = {
 /**
  * Single source of truth for the sidebar's two-macro-section architecture.
  * Every route below has a matching placeholder page — see app/assistente-notarile
- * and app/accademia. Layout/routing only for now; no agent logic wired here.
+ * and app/accademia. Each Assistente Notarile group maps 1:1 to its own
+ * future dedicated n8n agent, kept separate on purpose, never merged.
  */
 export const NAV: NavSection[] = [
   {
@@ -35,7 +36,7 @@ export const NAV: NavSection[] = [
         ],
       },
       {
-        label: "Ricerca giuridica",
+        label: "Ricerca Giuridica",
         href: "/assistente-notarile/ricerca-notarile",
         children: [
           {
@@ -45,23 +46,26 @@ export const NAV: NavSection[] = [
         ],
       },
       {
-        label: "Ricerca giuridica",
-        href: "/assistente-notarile/ricerca-giuridica",
-        children: [
-          {
-            label: "Dottrina e Giurisprudenza",
-            href: "/assistente-notarile/ricerca-giuridica/dottrina-giurisprudenza",
-          },
-        ],
+        label: "Dottrina e Giurisprudenza",
+        href: "/assistente-notarile/ricerca-giuridica/dottrina-giurisprudenza",
+        children: [],
       },
       {
-        label: "Visure e Adempimenti",
+        label: "Tassazione",
+        href: "/assistente-notarile/visure-adempimenti/tassazione",
+        children: [],
+      },
+      {
+        label: "Adempimenti",
+        href: "/assistente-notarile/visure-adempimenti/adempimenti",
+        children: [],
+      },
+      {
+        label: "Visure",
         href: "/assistente-notarile/visure-adempimenti",
         children: [
           { label: "Visure camerali", href: "/assistente-notarile/visure-adempimenti/visure-camerali" },
           { label: "Visure ipocatastali", href: "/assistente-notarile/visure-adempimenti/visure-ipocatastali" },
-          { label: "Adempimenti", href: "/assistente-notarile/visure-adempimenti/adempimenti" },
-          { label: "Tassazione", href: "/assistente-notarile/visure-adempimenti/tassazione" },
         ],
       },
     ],

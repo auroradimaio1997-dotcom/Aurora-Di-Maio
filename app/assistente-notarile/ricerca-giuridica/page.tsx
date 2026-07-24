@@ -10,19 +10,13 @@ export default function RicercaGiuridicaPage() {
   return (
     <AppShell>
       <PagePlaceholder
-        title="Ricerca giuridica"
+        title="Dottrina e Giurisprudenza"
         breadcrumbs={[
           { label: "Assistente Notarile", href: "/assistente-notarile" },
-          { label: "Ricerca giuridica" },
+          { label: "Dottrina e Giurisprudenza" },
         ]}
-      >
-        {[
-          {
-            label: "Dottrina e Giurisprudenza",
-            href: "/assistente-notarile/ricerca-giuridica/dottrina-giurisprudenza",
-          },
-        ]}
-      </PagePlaceholder>
+        description="Agente in preparazione."
+      />
     </AppShell>
   );
 }

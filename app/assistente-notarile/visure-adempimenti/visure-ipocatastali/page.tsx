@@ -13,7 +13,7 @@ export default function VisureIpocatastaliPage() {
         title="Visure ipocatastali"
         breadcrumbs={[
           { label: "Assistente Notarile", href: "/assistente-notarile" },
-          { label: "Visure e Adempimenti", href: "/assistente-notarile/visure-adempimenti" },
+          { label: "Visure", href: "/assistente-notarile/visure-adempimenti" },
           { label: "Visure ipocatastali" },
         ]}
       />

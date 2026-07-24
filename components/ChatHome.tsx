@@ -36,6 +36,10 @@ export default function ChatHome() {
       <p className="mt-2 text-lg text-secondary">
         Cosa dobbiamo fare in questo momento?
       </p>
+      <p className="mt-1 text-sm text-secondary">
+        Per orientarti e per domande veloci. Per un lavoro specialistico ti
+        indirizzerò alla sezione giusta in Aree di Ricerca e Lavoro.
+      </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {QUICK_ACTIONS.map((action) =>

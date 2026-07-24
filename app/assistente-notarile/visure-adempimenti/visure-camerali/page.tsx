@@ -13,7 +13,7 @@ export default function VisureCameraliPage() {
         title="Visure camerali"
         breadcrumbs={[
           { label: "Assistente Notarile", href: "/assistente-notarile" },
-          { label: "Visure e Adempimenti", href: "/assistente-notarile/visure-adempimenti" },
+          { label: "Visure", href: "/assistente-notarile/visure-adempimenti" },
           { label: "Visure camerali" },
         ]}
       />

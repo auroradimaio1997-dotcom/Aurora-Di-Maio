@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import AuroraCharacter, { type CharacterState } from "./character/AuroraCharacter";
 
@@ -35,130 +36,77 @@ const SCENES: Scene[] = [
 const SCENE_MS = 3400;
 
 /**
- * Owns the character for the whole homepage lifetime — it's rendered here
- * once and never unmounts, even after `entered` becomes true (it just gets
- * re-styled into the fixed bottom-right corner by the parent). Unmounting
- * and remounting a fresh <AuroraCharacter> used to recreate the WebGL
- * canvas on every scene change and on entering, causing a blank flash.
+ * The Home hero. Title, subtitle and the two primary actions are visible
+ * and clickable from the first frame — the scene captions underneath are
+ * pure decoration that rotates in the background, never gating anything.
  */
-export default function CinematicIntro({
-  entered,
-  cornerState,
-  onEnter,
-  onCornerClick,
-}: {
-  entered: boolean;
-  cornerState: CharacterState;
-  onEnter: () => void;
-  onCornerClick: () => void;
-}) {
+export default function CinematicIntro() {
   const reduceMotion = useReducedMotion();
   const [sceneIndex, setSceneIndex] = useState(0);
-  const [phase, setPhase] = useState<"scenes" | "greeting">("scenes");
 
   useEffect(() => {
-    if (entered || phase !== "scenes") return;
-    if (reduceMotion) {
-      setPhase("greeting");
-      return;
-    }
-    if (sceneIndex >= SCENES.length - 1) {
-      const t = setTimeout(() => setPhase("greeting"), SCENE_MS);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setSceneIndex((i) => i + 1), SCENE_MS);
+    if (reduceMotion) return;
+    const t = setTimeout(
+      () => setSceneIndex((i) => (i + 1) % SCENES.length),
+      SCENE_MS
+    );
     return () => clearTimeout(t);
-  }, [sceneIndex, phase, reduceMotion, entered]);
+  }, [sceneIndex, reduceMotion]);
 
   const scene = SCENES[sceneIndex];
-  const preEnterState: CharacterState = phase === "greeting" ? "waving" : scene.state;
 
   return (
-    <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 text-center">
-      <div
-        className={
-          entered
-            ? "fixed bottom-6 right-6 z-50 cursor-pointer"
-            : "cursor-default"
-        }
-        onClick={entered ? onCornerClick : undefined}
-        role={entered ? "button" : undefined}
-        tabIndex={entered ? 0 : undefined}
-        aria-label={entered ? "Aurora, il tuo assistente" : undefined}
-        onKeyDown={
-          entered
-            ? (e) => {
-                if (e.key === "Enter" || e.key === " ") onCornerClick();
-              }
-            : undefined
-        }
-      >
-        <AuroraCharacter
-          state={entered ? cornerState : preEnterState}
-          size={entered ? 84 : 200}
-        />
+    <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-10 text-center">
+      <AuroraCharacter state={scene.state} size={200} />
+
+      <div>
+        <h1 className="font-serif text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
+          <span className="text-gold">AI</span> AURORA STUDIO
+        </h1>
+        <p className="mt-4 text-lg text-secondary md:text-xl">
+          L&apos;Intelligenza Artificiale per la Ricerca e la Professione.
+        </p>
       </div>
 
-      {!entered && (
+      <div className="flex flex-col items-center gap-3 sm:flex-row">
+        <Link href="/chat">
+          <motion.span
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-block rounded-full bg-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-navy transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          >
+            Lavora con AI Aurora Studio
+          </motion.span>
+        </Link>
+
+        <Link href="/aree-di-ricerca-e-lavoro">
+          <motion.span
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="inline-block rounded-full border px-8 py-3 text-sm font-semibold uppercase tracking-wide text-foreground transition-colors hover:border-gold/40 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Aree di Ricerca e Lavoro
+          </motion.span>
+        </Link>
+      </div>
+
+      <div className="h-14">
         <AnimatePresence mode="wait">
-          {phase === "scenes" ? (
-            <motion.div
-              key={scene.key}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center gap-6"
-            >
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
-                {scene.label}
-              </span>
-
-              <div className="space-y-1">
-                {scene.lines.map((line, i) => (
-                  <p
-                    key={i}
-                    className={
-                      i === scene.lines.length - 1 && scene.key === "notaio"
-                        ? "font-serif text-2xl font-semibold tracking-wide text-gold md:text-3xl"
-                        : "text-base text-secondary md:text-lg"
-                    }
-                  >
-                    {line}
-                  </p>
-                ))}
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="greeting"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center gap-8"
-            >
-              <div>
-                <h1 className="font-serif text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
-                  <span className="text-gold">AI</span> AURORA STUDIO
-                </h1>
-                <p className="mt-4 text-lg text-secondary md:text-xl">
-                  L&apos;intelligenza artificiale per la ricerca e la professione.
-                </p>
-              </div>
-
-              <motion.button
-                type="button"
-                onClick={onEnter}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="rounded-full bg-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-navy transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-              >
-                Lavora con AI Aurora Studio
-              </motion.button>
-            </motion.div>
-          )}
+          <motion.div
+            key={scene.key}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center gap-1"
+          >
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+              {scene.label}
+            </span>
+            <p className="text-sm text-secondary">{scene.lines[0]}</p>
+          </motion.div>
         </AnimatePresence>
-      )}
+      </div>
     </div>
   );
 }

@@ -13,9 +13,9 @@ export default function DottrinaGiurisprudenzaPage() {
         title="Dottrina e Giurisprudenza"
         breadcrumbs={[
           { label: "Assistente Notarile", href: "/assistente-notarile" },
-          { label: "Ricerca giuridica", href: "/assistente-notarile/ricerca-giuridica" },
           { label: "Dottrina e Giurisprudenza" },
         ]}
+        description="Agente in preparazione."
       />
     </AppShell>
   );
