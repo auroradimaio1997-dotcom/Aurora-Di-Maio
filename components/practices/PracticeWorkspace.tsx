@@ -39,25 +39,50 @@ import { PRACTICE_STATUSES } from "@/lib/practices/types";
 const PLACEHOLDER_SPLIT_PATTERN = /(\[[^\]\n]+\])/g;
 const PLACEHOLDER_TEST_PATTERN = /^\[[^\]\n]+\]$/;
 
-/** Renders act text with [SEGNAPOSTO] placeholders highlighted so the
- * notary immediately sees what still needs to be filled in. */
+/** A short all-caps line (e.g. "ATTO DI COMPRAVENDITA", "REPUBBLICA
+ * ITALIANA") is treated as a heading and centered, like on a real deed. */
+function isTitleLine(line: string) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.length > 90) return false;
+  if (!/[A-ZÀ-Ú]/.test(trimmed)) return false;
+  return trimmed === trimmed.toUpperCase();
+}
+
+/** Highlights [SEGNAPOSTO] placeholders within a single line of act text. */
+function renderPlaceholders(line: string, keyPrefix: string) {
+  const parts = line.split(PLACEHOLDER_SPLIT_PATTERN);
+  return parts.map((part, i) =>
+    PLACEHOLDER_TEST_PATTERN.test(part) ? (
+      <mark
+        key={`${keyPrefix}-${i}`}
+        className="rounded bg-yellow-300/40 px-1 font-sans text-[9pt] font-semibold text-red-700"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={`${keyPrefix}-${i}`}>{part}</span>
+    )
+  );
+}
+
+/** Renders act text with titles centered and body paragraphs justified
+ * with margins, as in a real notarial deed, placeholders highlighted. */
 function HighlightedActText({ text }: { text: string }) {
-  const parts = text.split(PLACEHOLDER_SPLIT_PATTERN);
+  const lines = text.split("\n");
   return (
-    <>
-      {parts.map((part, i) =>
-        PLACEHOLDER_TEST_PATTERN.test(part) ? (
-          <mark
-            key={i}
-            className="rounded bg-yellow-300/40 px-1 font-sans text-[9pt] font-semibold text-red-700"
-          >
-            {part}
-          </mark>
+    <div className="mx-auto max-w-[70ch] px-6">
+      {lines.map((line, i) =>
+        isTitleLine(line) ? (
+          <p key={i} className="my-2 text-center font-bold">
+            {renderPlaceholders(line, `t${i}`)}
+          </p>
         ) : (
-          <span key={i}>{part}</span>
+          <p key={i} className="my-1 text-justify">
+            {line.trim() ? renderPlaceholders(line, `b${i}`) : " "}
+          </p>
         )
       )}
-    </>
+    </div>
   );
 }
 
@@ -87,9 +112,21 @@ function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function escapeHtml(s: string) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function downloadWord(text: string, filename: string) {
-  const html = text.replace(/\n/g, "<br/>");
-  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body style="font-family:'Courier New',monospace;font-size:10pt;">${html}</body></html>`;
+  const paragraphs = text
+    .split("\n")
+    .map((line) => {
+      if (isTitleLine(line)) {
+        return `<p style="text-align:center;font-weight:bold;">${escapeHtml(line.trim())}</p>`;
+      }
+      return `<p style="text-align:justify;">${escapeHtml(line) || "&nbsp;"}</p>`;
+    })
+    .join("");
+  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body style="font-family:'Courier New',monospace;font-size:10pt;margin:2.5cm;">${paragraphs}</body></html>`;
   const blob = new Blob(["﻿", doc], { type: "application/msword" });
   downloadBlob(blob, `${filename}.doc`);
 }
@@ -97,12 +134,43 @@ function downloadWord(text: string, filename: string) {
 async function downloadPdf(text: string, filename: string) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const margin = 48;
-  const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
-  const lines = doc.splitTextToSize(text, maxWidth);
+  const margin = 72;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const maxWidth = pageWidth - margin * 2;
+  const lineHeight = 14;
   doc.setFont("courier", "normal");
   doc.setFontSize(10);
-  doc.text(lines, margin, margin);
+
+  let y = margin;
+  function ensureSpace(lines: number) {
+    if (y + lines * lineHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  for (const rawLine of text.split("\n")) {
+    if (isTitleLine(rawLine)) {
+      ensureSpace(1);
+      doc.text(rawLine.trim(), pageWidth / 2, y, { align: "center" });
+      y += lineHeight;
+      continue;
+    }
+    if (!rawLine.trim()) {
+      ensureSpace(1);
+      y += lineHeight;
+      continue;
+    }
+    const wrapped = doc.splitTextToSize(rawLine, maxWidth) as string[];
+    ensureSpace(wrapped.length);
+    wrapped.forEach((wrappedLine, i) => {
+      const isLastOfParagraph = i === wrapped.length - 1;
+      doc.text(wrappedLine, margin, y, isLastOfParagraph ? undefined : { align: "justify", maxWidth });
+      y += lineHeight;
+    });
+  }
+
   downloadBlob(doc.output("blob"), `${filename}.pdf`);
 }
 
@@ -173,7 +241,7 @@ function ActViewerModal({ text, onClose }: { text: string; onClose: () => void }
           </button>
         </div>
         <div
-          className="select-text overflow-y-auto whitespace-pre-wrap px-6 py-5 text-black"
+          className="select-text overflow-y-auto py-5 text-black"
           style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.6 }}
         >
           <HighlightedActText text={text} />
@@ -919,7 +987,7 @@ export default function PracticeWorkspace({
               className="w-full max-w-none rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
             >
               <div
-                className="select-text overflow-x-auto whitespace-pre-wrap"
+                className="select-text overflow-x-auto"
                 style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
               >
                 <HighlightedActText text={stripMarkdown(m.text)} />
