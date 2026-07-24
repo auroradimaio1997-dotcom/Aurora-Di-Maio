@@ -714,7 +714,7 @@ export default function PracticeWorkspace({
           ) : (
             <div
               key={m.message_id}
-              className="max-w-[85ch] select-text whitespace-pre-wrap rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
+              className="w-full max-w-none select-text overflow-x-auto whitespace-pre-wrap rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
               style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
             >
               <HighlightedActText text={stripMarkdown(m.text)} />
