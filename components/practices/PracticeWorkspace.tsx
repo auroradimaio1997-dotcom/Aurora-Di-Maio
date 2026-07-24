@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronRight, Loader2, Plus, Send, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { ChevronDown, ChevronRight, FileText, Loader2, Plus, Send, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {
   createTemplate,
@@ -9,6 +9,7 @@ import {
   listMessages,
   listTemplates,
   postMessage,
+  readFileAsBase64,
 } from "@/lib/practices/api";
 import type { Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
 
@@ -25,7 +26,9 @@ function SchemaSection({
   const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
 
   useEffect(() => {
@@ -44,14 +47,32 @@ function SchemaSection({
     };
   }, [practiceType]);
 
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    setFile(e.target.files?.[0] ?? null);
+  }
+
   async function handleSave() {
-    if (!title.trim() || !content.trim()) return;
-    const { template } = await createTemplate({ practiceType, title: title.trim(), content: content.trim() });
-    setTemplates((prev) => [template, ...prev]);
-    setTitle("");
-    setContent("");
-    setShowForm(false);
-    onActiveTemplateChange(template);
+    if (!title.trim() || !file) return;
+    setSaving(true);
+    try {
+      const dataBase64 = await readFileAsBase64(file);
+      const { template } = await createTemplate({
+        practiceType,
+        title: title.trim(),
+        notes: notes.trim() || undefined,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        dataBase64,
+      });
+      setTemplates((prev) => [template, ...prev]);
+      setTitle("");
+      setNotes("");
+      setFile(null);
+      setShowForm(false);
+      onActiveTemplateChange(template);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(templateId: string) {
@@ -80,8 +101,8 @@ function SchemaSection({
 
           {templates.length === 0 && !showForm && (
             <p className="mb-2 text-secondary">
-              Nessuno schema salvato per &quot;{practiceType}&quot;. Aggiungine uno per far
-              seguire alla chat il tuo modello quando scrive un atto.
+              Nessuno schema salvato per &quot;{practiceType}&quot;. Carica il file del tuo
+              modello per farlo seguire alla chat quando scrive un atto.
             </p>
           )}
 
@@ -89,28 +110,32 @@ function SchemaSection({
             {templates.map((t) => (
               <div
                 key={t.template_id}
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
+                className={`rounded-md px-2 py-1.5 ${
                   activeTemplateId === t.template_id ? "bg-muted" : "hover:bg-muted/60"
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() =>
-                    onActiveTemplateChange(activeTemplateId === t.template_id ? null : t)
-                  }
-                  className="flex-1 truncate text-left text-foreground"
-                >
-                  {activeTemplateId === t.template_id ? "✓ " : ""}
-                  {t.title}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(t.template_id)}
-                  className="text-secondary hover:text-destructive"
-                  aria-label="Elimina schema"
-                >
-                  <Trash2 size={12} aria-hidden="true" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onActiveTemplateChange(activeTemplateId === t.template_id ? null : t)
+                    }
+                    className="flex flex-1 items-center gap-1.5 truncate text-left text-foreground"
+                  >
+                    <FileText size={12} className="shrink-0" aria-hidden="true" />
+                    {activeTemplateId === t.template_id ? "✓ " : ""}
+                    {t.title}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(t.template_id)}
+                    className="text-secondary hover:text-destructive"
+                    aria-label="Elimina schema"
+                  >
+                    <Trash2 size={12} aria-hidden="true" />
+                  </button>
+                </div>
+                {t.notes && <p className="mt-1 pl-5 text-secondary">{t.notes}</p>}
               </div>
             ))}
           </div>
@@ -124,20 +149,27 @@ function SchemaSection({
                 placeholder="Nome schema (es. Donazione immobiliare)"
                 className="w-full rounded-md border bg-background px-2 py-1.5 text-foreground"
               />
+              <input
+                type="file"
+                accept="application/pdf,.docx,.doc"
+                onChange={handleFileChange}
+                className="w-full text-foreground"
+              />
               <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={6}
-                placeholder="Incolla qui il testo del tuo modello, con segnaposto tra parentesi quadre…"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="Rispetto a questo schema, cambia questo…"
                 className="w-full resize-none rounded-md border bg-background px-2 py-1.5 text-foreground"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="flex-1 rounded-full bg-blue-600 py-1.5 font-semibold text-white"
+                  disabled={!title.trim() || !file || saving}
+                  className="flex-1 rounded-full bg-blue-600 py-1.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Salva schema
+                  {saving ? "Caricamento…" : "Salva schema"}
                 </button>
                 <button
                   type="button"
@@ -155,7 +187,7 @@ function SchemaSection({
               className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-secondary hover:bg-muted"
             >
               <Plus size={12} aria-hidden="true" />
-              Aggiungi schema
+              Carica schema
             </button>
           )}
         </div>
@@ -214,9 +246,16 @@ export default function PracticeWorkspace({ practice }: { practice: Practice }) 
       });
       setMessages((prev) => [...prev, userMessage]);
 
-      const contextualMessage = activeTemplate
-        ? `Segui questo schema come modello per la redazione:\n\n${activeTemplate.content}\n\nRichiesta: ${text}`
-        : text;
+      let contextualMessage = text;
+      if (activeTemplate) {
+        const schemaText = activeTemplate.content
+          ? `Segui questo schema come modello per la redazione:\n\n${activeTemplate.content}`
+          : `Segui lo schema "${activeTemplate.title}" come modello per la redazione (il testo non è stato estratto automaticamente dal file).`;
+        const notesText = activeTemplate.notes
+          ? `\n\nRispetto allo schema, tieni conto di questo: ${activeTemplate.notes}`
+          : "";
+        contextualMessage = `${schemaText}${notesText}\n\nRichiesta: ${text}`;
+      }
 
       const res = await fetch("/api/agente-coordinatore", {
         method: "POST",

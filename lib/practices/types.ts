@@ -79,7 +79,10 @@ export type PracticeTemplate = {
   template_id: string;
   practice_type: string;
   title: string;
-  content: string;
+  content: string | null;
+  storage_path: string | null;
+  mime_type: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };

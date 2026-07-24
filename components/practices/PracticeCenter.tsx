@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PanelLeft } from "lucide-react";
 import { listPractices, PracticeStorageNotConfiguredError } from "@/lib/practices/api";
 import type { Practice } from "@/lib/practices/types";
 import NewPracticeModal from "./NewPracticeModal";
@@ -13,6 +14,9 @@ import DocumentsPanel from "./DocumentsPanel";
  * (e.g. Assistente Notarile → Redazione Atti → Inter vivos). practiceType/
  * area/agentId identify which specialist agent new practices here get
  * assigned to.
+ *
+ * The practice list is a drawer, closed by default, so the working page
+ * stays full-width and clean — it only appears when explicitly opened.
  */
 export default function PracticeCenter({
   practiceType,
@@ -29,6 +33,7 @@ export default function PracticeCenter({
   const [notConfigured, setNotConfigured] = useState(false);
   const [mobileView, setMobileView] = useState<"practices" | "chat" | "documents">("chat");
   const [docsCollapsed, setDocsCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     listPractices()
@@ -54,16 +59,40 @@ export default function PracticeCenter({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-160px)] min-h-[540px] overflow-hidden rounded-xl border">
-      {/* Desktop + iPad sidebar */}
-      <div className="hidden w-64 shrink-0 border-r bg-background p-3 md:block">
-        <PracticeSidebar
-          practices={practices}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          onNew={() => setShowNewModal(true)}
-        />
-      </div>
+    <div className="relative flex h-full overflow-hidden">
+      {/* Desktop + iPad: sidebar as an overlay drawer, closed by default */}
+      <button
+        type="button"
+        onClick={() => setSidebarOpen(true)}
+        className="absolute left-3 top-3 z-30 hidden items-center gap-1.5 rounded-full border bg-background px-3 py-1.5 text-xs font-medium text-secondary shadow-sm hover:text-foreground md:flex"
+      >
+        <PanelLeft size={14} aria-hidden="true" />
+        Pratiche
+      </button>
+
+      {sidebarOpen && (
+        <div className="absolute inset-0 z-40 hidden md:block">
+          <div
+            className="absolute inset-0 bg-navy/40"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute inset-y-0 left-0 w-72 border-r bg-background p-3 shadow-2xl">
+            <PracticeSidebar
+              practices={practices}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                setSelectedId(id);
+                setSidebarOpen(false);
+              }}
+              onNew={() => {
+                setShowNewModal(true);
+                setSidebarOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Mobile: tab bar to switch areas, one visible at a time */}
       <div className="flex flex-1 flex-col md:hidden">
@@ -113,7 +142,7 @@ export default function PracticeCenter({
           ))}
       </div>
 
-      {/* Desktop + iPad: chat + documents panel */}
+      {/* Desktop + iPad: full-width chat + documents panel, sidebar is the drawer above */}
       <div className="hidden flex-1 md:flex">
         {selected ? (
           <>
@@ -126,7 +155,16 @@ export default function PracticeCenter({
           </>
         ) : (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-sm text-secondary">Seleziona o crea una pratica per iniziare.</p>
+            <div className="text-center">
+              <p className="mb-3 text-sm text-secondary">Seleziona o crea una pratica per iniziare.</p>
+              <button
+                type="button"
+                onClick={() => setShowNewModal(true)}
+                className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Nuova pratica
+              </button>
+            </div>
           </div>
         )}
       </div>

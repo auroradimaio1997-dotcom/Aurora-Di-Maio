@@ -104,7 +104,14 @@ export function listTemplates(practiceType: string) {
   );
 }
 
-export function createTemplate(input: { practiceType: string; title: string; content: string }) {
+export function createTemplate(input: {
+  practiceType: string;
+  title: string;
+  notes?: string;
+  fileName: string;
+  mimeType: string;
+  dataBase64: string;
+}) {
   return request<{ template: PracticeTemplate }>("/api/practice-templates", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -116,6 +123,10 @@ export function deleteTemplate(templateId: string) {
   return request<{ ok: true }>(`/api/practice-templates/${templateId}`, {
     method: "DELETE",
   });
+}
+
+export function getTemplateSignedUrl(templateId: string) {
+  return request<{ url: string }>(`/api/practice-templates/${templateId}?signedUrl=1`);
 }
 
 export function readFileAsBase64(file: File): Promise<string> {

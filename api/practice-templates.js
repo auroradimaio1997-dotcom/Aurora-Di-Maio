@@ -1,5 +1,28 @@
+const crypto = require("crypto");
 const { getSupabaseServerClient } = require("../lib/practices/supabaseServer");
-const { notConfiguredResponse, setCors } = require("../lib/practices/shared");
+const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../lib/practices/shared");
+
+const MAX_BYTES = 4 * 1024 * 1024;
+
+async function extractText(buffer, mimeType) {
+  try {
+    if (mimeType === "application/pdf") {
+      const pdfParse = require("pdf-parse");
+      const result = await pdfParse(buffer);
+      return result.text?.trim() || null;
+    }
+    if (
+      mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      const mammoth = require("mammoth");
+      const result = await mammoth.extractRawText({ buffer });
+      return result.value?.trim() || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -16,7 +39,10 @@ module.exports = async function handler(req, res) {
 
   if (req.method === "GET") {
     const practiceType = req.query.practiceType;
-    let query = supabase.from("practice_templates").select("*").order("updated_at", { ascending: false });
+    let query = supabase
+      .from("practice_templates")
+      .select("*")
+      .order("updated_at", { ascending: false });
     if (practiceType) query = query.eq("practice_type", practiceType);
 
     const { data, error } = await query;
@@ -40,16 +66,47 @@ module.exports = async function handler(req, res) {
 
     const practiceType = (body?.practiceType || "").trim();
     const title = (body?.title || "").trim();
-    const content = (body?.content || "").trim();
+    const notes = (body?.notes || "").trim();
+    const fileName = (body?.fileName || "").trim();
+    const mimeType = body?.mimeType || "application/octet-stream";
+    const dataBase64 = body?.dataBase64 || "";
 
-    if (!practiceType || !title || !content) {
-      res.status(400).json({ error: "Tipo, titolo e contenuto sono obbligatori." });
+    if (!practiceType || !title || !fileName || !dataBase64) {
+      res.status(400).json({ error: "Tipo, titolo e file sono obbligatori." });
       return;
     }
 
+    const buffer = Buffer.from(dataBase64, "base64");
+    if (buffer.byteLength > MAX_BYTES) {
+      res.status(413).json({ error: "File troppo grande (max 4MB per ora)." });
+      return;
+    }
+
+    const templateId = crypto.randomUUID();
+    const storagePath = `schemi/${practiceType}/${templateId}-${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(DOCUMENTS_BUCKET)
+      .upload(storagePath, buffer, { contentType: mimeType, upsert: false });
+
+    if (uploadError) {
+      res.status(500).json({ error: `Errore nel caricamento: ${uploadError.message}` });
+      return;
+    }
+
+    const content = await extractText(buffer, mimeType);
+
     const { data, error } = await supabase
       .from("practice_templates")
-      .insert({ practice_type: practiceType, title, content })
+      .insert({
+        template_id: templateId,
+        practice_type: practiceType,
+        title,
+        notes: notes || null,
+        content,
+        storage_path: storagePath,
+        mime_type: mimeType,
+      })
       .select()
       .single();
 
