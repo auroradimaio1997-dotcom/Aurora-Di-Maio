@@ -218,7 +218,7 @@ export default function ChatWidget({
       >
         {messages.length === 0 && (
           <p className="text-sm text-secondary">
-            Scrivi un messaggio per iniziare a parlare con l&apos;assistente.
+            Cosa ti serve al momento?
           </p>
         )}
 
