@@ -24,7 +24,6 @@ import {
 import {
   createTemplate,
   deleteTemplate,
-  extractDocumentText,
   listMessages,
   listTemplates,
   postMessage,
@@ -850,32 +849,6 @@ export default function PracticeWorkspace({
     await sendToAgent(text, contextualMessage);
   }
 
-  async function handleReviewDraft(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || status === "loading") return;
-
-    setStatus("loading");
-    setErrorMsg("");
-    try {
-      const dataBase64 = await readFileAsBase64(file);
-      const { text } = await extractDocumentText({
-        mimeType: file.type || "application/octet-stream",
-        fileName: file.name,
-        dataBase64,
-      });
-      const reviewPrompt = `Rivedi la seguente bozza di atto notarile in ogni suo aspetto: correttezza grammaticale e ortografica, rispetto della normativa vigente, correttezza delle formalità e delle clausole di stile tipiche di un atto notarile italiano. Segnala puntualmente ogni problema trovato e, dove utile, proponi la correzione.\n\nBOZZA:\n${text}`;
-      await sendToAgent(`Revisione bozza: ${file.name}`, reviewPrompt);
-    } catch (err) {
-      if (err instanceof Error && err.name === "PracticeStorageNotConfiguredError") {
-        setStatus("not-configured");
-      } else {
-        setStatus("error");
-        setErrorMsg(err instanceof Error ? err.message : "Errore nell'estrazione del file.");
-      }
-    }
-  }
-
   async function handleReviewLastDraft() {
     if (status === "loading") return;
     const lastDraft = [...messages].reverse().find((m) => m.role === "aurora")?.text;
@@ -987,18 +960,6 @@ export default function PracticeWorkspace({
           <ClipboardCheck size={13} aria-hidden="true" />
           Revisiona la tua ultima bozza modificata
         </button>
-
-        <label className="flex w-fit cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground">
-          <ClipboardCheck size={13} aria-hidden="true" />
-          Revisiona bozza (carica file)
-          <input
-            type="file"
-            accept="application/pdf,.docx,.txt"
-            onChange={handleReviewDraft}
-            disabled={status === "loading"}
-            className="hidden"
-          />
-        </label>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-2 flex items-center gap-2 rounded-full border bg-background px-2 py-2">
