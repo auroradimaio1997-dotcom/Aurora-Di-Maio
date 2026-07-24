@@ -519,6 +519,7 @@ export default function PracticeWorkspace({
       const dataBase64 = await readFileAsBase64(file);
       const { text } = await extractDocumentText({
         mimeType: file.type || "application/octet-stream",
+        fileName: file.name,
         dataBase64,
       });
       const reviewPrompt = `Rivedi la seguente bozza di atto notarile in ogni suo aspetto: correttezza grammaticale e ortografica, rispetto della normativa vigente, correttezza delle formalità e delle clausole di stile tipiche di un atto notarile italiano. Segnala puntualmente ogni problema trovato e, dove utile, proponi la correzione.\n\nBOZZA:\n${text}`;
@@ -534,7 +535,7 @@ export default function PracticeWorkspace({
   }
 
   return (
-    <div className="flex h-full min-w-0 flex-1 flex-col p-4">
+    <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
       <div className="mb-3 border-b pb-3">
         <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
         <p className="text-xs text-secondary">
@@ -549,34 +550,36 @@ export default function PracticeWorkspace({
         </p>
       )}
 
-      <CategoryUploadSection
-        label="Dottrina e giurisprudenza di riferimento"
-        category="Dottrina e Giurisprudenza"
-        practiceId={practice.practice_id}
-        portalUrl="https://www.onelegale.it"
-        portalLabel="OneLegale"
-      />
+      <div className="max-h-56 shrink-0 space-y-0 overflow-y-auto pr-1">
+        <CategoryUploadSection
+          label="Dottrina e giurisprudenza di riferimento"
+          category="Dottrina e Giurisprudenza"
+          practiceId={practice.practice_id}
+          portalUrl="https://onelegale.wolterskluwer.it"
+          portalLabel="OneLegale"
+        />
 
-      <SchemaSection
-        practiceType={practice.practice_type}
-        activeTemplateId={activeTemplate?.template_id ?? null}
-        onActiveTemplateChange={setActiveTemplate}
-      />
+        <SchemaSection
+          practiceType={practice.practice_type}
+          activeTemplateId={activeTemplate?.template_id ?? null}
+          onActiveTemplateChange={setActiveTemplate}
+        />
 
-      <VisureHub
-        onOpenPortal={(category) => {
-          window.open(SMARTACCESS_URL, "_blank", "noopener");
-          onOpenVisuraPortal(category);
-        }}
-      />
+        <VisureHub
+          onOpenPortal={(category) => {
+            window.open(SMARTACCESS_URL, "_blank", "noopener");
+            onOpenVisuraPortal(category);
+          }}
+        />
 
-      <CategoryUploadSection
-        label="Documenti di identità delle parti"
-        category="Documenti delle parti"
-        practiceId={practice.practice_id}
-      />
+        <CategoryUploadSection
+          label="Documenti di identità delle parti"
+          category="Documenti delle parti"
+          practiceId={practice.practice_id}
+        />
 
-      <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
+        <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
+      </div>
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
         {messages.length === 0 && (
@@ -616,7 +619,7 @@ export default function PracticeWorkspace({
         Revisiona bozza
         <input
           type="file"
-          accept="application/pdf,.docx,.doc,.txt"
+          accept="application/pdf,.docx,.txt"
           onChange={handleReviewDraft}
           disabled={status === "loading"}
           className="hidden"

@@ -75,7 +75,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const content = await extractText(buffer, mimeType);
+    const content = await extractText(buffer, mimeType, fileName);
 
     const { data, error } = await supabase
       .from("practice_templates")

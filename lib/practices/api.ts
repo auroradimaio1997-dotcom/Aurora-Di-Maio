@@ -152,7 +152,7 @@ export function getTemplateSignedUrl(templateId: string) {
   return request<{ url: string }>(`/api/practice-templates/${templateId}?signedUrl=1`);
 }
 
-export function extractDocumentText(input: { mimeType: string; dataBase64: string }) {
+export function extractDocumentText(input: { mimeType: string; fileName: string; dataBase64: string }) {
   return request<{ text: string }>("/api/extract-text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
