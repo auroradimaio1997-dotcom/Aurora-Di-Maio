@@ -290,6 +290,10 @@ export default function DocumentsPanel({
   const dichiarazioneSuccessione = documents.filter((d) => d.category === "Dichiarazione di Successione");
   const certificatoMorte = documents.filter((d) => d.category === "Certificato di Morte");
   const regimePatrimoniale = documents.filter((d) => d.category === "Regime Patrimoniale");
+  const bilancio = documents.filter((d) => d.category === "Bilancio");
+  const situazionePatrimoniale = documents.filter((d) => d.category === "Situazione Patrimoniale Aggiornata");
+  const verbaliAdunanze = documents.filter((d) => d.category === "Verbali Adunanze Soci e CDA");
+  const altriVerbali = documents.filter((d) => d.category === "Altri Verbali");
   const altri = documents.filter((d) => OTHER_CATEGORIES.includes(d.category));
 
   if (collapsed) {
@@ -394,6 +398,10 @@ export default function DocumentsPanel({
         <DocumentGroup label="Dichiarazione di Successione" items={dichiarazioneSuccessione.map(docToItem)} />
         <DocumentGroup label="Certificato di Morte" items={certificatoMorte.map(docToItem)} />
         <DocumentGroup label="Regime Patrimoniale" items={regimePatrimoniale.map(docToItem)} />
+        <DocumentGroup label="Bilancio" items={bilancio.map(docToItem)} />
+        <DocumentGroup label="Situazione Patrimoniale Aggiornata" items={situazionePatrimoniale.map(docToItem)} />
+        <DocumentGroup label="Verbali Adunanze Soci e CDA" items={verbaliAdunanze.map(docToItem)} />
+        <DocumentGroup label="Altri Verbali" items={altriVerbali.map(docToItem)} />
         <DocumentGroup label="Altri documenti" items={altri.map(docToItem)} />
       </div>
     </div>

@@ -5,6 +5,13 @@ import { X } from "lucide-react";
 import { createPractice, PracticeStorageNotConfiguredError } from "@/lib/practices/api";
 import type { Practice } from "@/lib/practices/types";
 
+const TITLE_PLACEHOLDER_BY_TYPE: Record<string, string> = {
+  "Inter vivos": "Es. Compravendita Rossi – Bianchi",
+  "Mortis causa": "Es. Testamento pubblico, Verbale deposito testamento segreto",
+  Societario: "Es. Atto di fusione, Verbale di approvazione progetto scissione",
+  "Mutui e Relazioni Preliminari": "Es. Mutuo ipotecario Rossi, Relazione preliminare Bianchi",
+};
+
 export default function NewPracticeModal({
   practiceType,
   area,
@@ -72,7 +79,7 @@ export default function NewPracticeModal({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Es. Compravendita Rossi – Bianchi"
+              placeholder={TITLE_PLACEHOLDER_BY_TYPE[practiceType] ?? "Es. Compravendita Rossi – Bianchi"}
               required
               className="w-full rounded-lg border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />

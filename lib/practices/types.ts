@@ -27,6 +27,10 @@ export type DocumentCategory =
   | "Dichiarazione di Successione"
   | "Certificato di Morte"
   | "Regime Patrimoniale"
+  | "Bilancio"
+  | "Situazione Patrimoniale Aggiornata"
+  | "Verbali Adunanze Soci e CDA"
+  | "Altri Verbali"
   | "Bozze dell'atto"
   | "Allegati"
   | "Altro";
@@ -43,6 +47,10 @@ export const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   "Dichiarazione di Successione",
   "Certificato di Morte",
   "Regime Patrimoniale",
+  "Bilancio",
+  "Situazione Patrimoniale Aggiornata",
+  "Verbali Adunanze Soci e CDA",
+  "Altri Verbali",
   "Bozze dell'atto",
   "Allegati",
   "Altro",

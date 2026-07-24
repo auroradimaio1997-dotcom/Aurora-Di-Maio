@@ -598,6 +598,35 @@ export default function PracticeWorkspace({
           portals={[{ url: SMARTACCESS_URL, label: "SmartRUN — Anagrafica" }]}
         />
 
+        {practice.practice_type === "Societario" && (
+          <>
+            <CategoryUploadSection
+              label="Bilancio"
+              category="Bilancio"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Situazione Patrimoniale Aggiornata"
+              category="Situazione Patrimoniale Aggiornata"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Verbali Adunanze Soci e CDA"
+              category="Verbali Adunanze Soci e CDA"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Altri Verbali"
+              category="Altri Verbali"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+          </>
+        )}
+
         <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
       </div>
 

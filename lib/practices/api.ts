@@ -19,8 +19,11 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export function listPractices(options?: { trashed?: boolean }) {
-  const query = options?.trashed ? "?trashed=1" : "";
+export function listPractices(options?: { trashed?: boolean; practiceType?: string }) {
+  const params = new URLSearchParams();
+  if (options?.trashed) params.set("trashed", "1");
+  if (options?.practiceType) params.set("practiceType", options.practiceType);
+  const query = params.toString() ? `?${params.toString()}` : "";
   return request<{ practices: Practice[] }>(`/api/practices${query}`);
 }
 

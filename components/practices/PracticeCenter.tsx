@@ -28,6 +28,7 @@ export default function PracticeCenter({
   agentId: string;
 }) {
   const [practices, setPractices] = useState<Practice[]>([]);
+  const [foreignPractices, setForeignPractices] = useState<Practice[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
@@ -43,7 +44,7 @@ export default function PracticeCenter({
   }
 
   function refetchPractices() {
-    listPractices()
+    listPractices({ practiceType })
       .then(({ practices }) => setPractices(practices))
       .catch((err) => {
         if (err instanceof PracticeStorageNotConfiguredError) setNotConfigured(true);
@@ -52,14 +53,26 @@ export default function PracticeCenter({
 
   useEffect(() => {
     refetchPractices();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceType]);
 
   function handleTrashed(practiceId: string) {
     setPractices((prev) => prev.filter((p) => p.practice_id !== practiceId));
+    setForeignPractices((prev) => prev.filter((p) => p.practice_id !== practiceId));
     if (selectedId === practiceId) setSelectedId(null);
   }
 
-  const selected = practices.find((p) => p.practice_id === selectedId) ?? null;
+  function handleFoundPractice(practice: Practice) {
+    setForeignPractices((prev) =>
+      prev.some((p) => p.practice_id === practice.practice_id) ? prev : [practice, ...prev]
+    );
+    setSelectedId(practice.practice_id);
+  }
+
+  const selected =
+    practices.find((p) => p.practice_id === selectedId) ??
+    foreignPractices.find((p) => p.practice_id === selectedId) ??
+    null;
 
   if (notConfigured) {
     return (
@@ -107,6 +120,7 @@ export default function PracticeCenter({
               }}
               onTrashed={handleTrashed}
               onRestored={refetchPractices}
+              onFoundPractice={handleFoundPractice}
             />
           </div>
         </div>
@@ -141,6 +155,7 @@ export default function PracticeCenter({
               onNew={() => setShowNewModal(true)}
               onTrashed={handleTrashed}
               onRestored={refetchPractices}
+              onFoundPractice={handleFoundPractice}
             />
           </div>
         )}

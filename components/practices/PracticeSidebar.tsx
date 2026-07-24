@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { FolderSearch, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import type { Practice, PracticeStatus } from "@/lib/practices/types";
 import { PRACTICE_STATUSES } from "@/lib/practices/types";
 import { deletePracticeForever, listPractices, restorePractice, trashPractice } from "@/lib/practices/api";
@@ -75,6 +75,57 @@ function TrashView({ onRestored }: { onRestored: () => void }) {
   );
 }
 
+function FindView({ onFound }: { onFound: (practice: Practice) => void }) {
+  const [all, setAll] = useState<Practice[]>([]);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    listPractices()
+      .then(({ practices }) => setAll(practices))
+      .catch(() => {});
+  }, []);
+
+  const filtered = all.filter((p) => p.title.toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="relative mb-2">
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-secondary"
+          aria-hidden="true"
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Cerca in tutte le sezioni…"
+          autoFocus
+          className="w-full rounded-full border bg-background py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+        {filtered.length === 0 && (
+          <p className="px-1 text-xs text-secondary">Nessuna pratica trovata.</p>
+        )}
+        {filtered.map((p) => (
+          <button
+            key={p.practice_id}
+            type="button"
+            onClick={() => onFound(p)}
+            className="w-full rounded-lg px-2 py-2 text-left hover:bg-muted/60"
+          >
+            <p className="truncate text-sm font-medium text-foreground">{p.title}</p>
+            <p className="mt-0.5 truncate text-xs text-secondary">
+              {p.practice_type} · {p.status}
+            </p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function PracticeSidebar({
   practices,
   selectedId,
@@ -82,6 +133,7 @@ export default function PracticeSidebar({
   onNew,
   onTrashed,
   onRestored,
+  onFoundPractice,
 }: {
   practices: Practice[];
   selectedId: string | null;
@@ -89,10 +141,11 @@ export default function PracticeSidebar({
   onNew: () => void;
   onTrashed: (practiceId: string) => void;
   onRestored: () => void;
+  onFoundPractice: (practice: Practice) => void;
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PracticeStatus | "">("");
-  const [view, setView] = useState<"active" | "trash">("active");
+  const [view, setView] = useState<"active" | "trash" | "find">("active");
   const [trashRefreshKey, setTrashRefreshKey] = useState(0);
 
   const filtered = useMemo(() => {
@@ -183,19 +236,29 @@ export default function PracticeSidebar({
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setView("trash");
-              setTrashRefreshKey((k) => k + 1);
-            }}
-            className="mt-2 flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-secondary hover:bg-muted hover:text-foreground"
-          >
-            <Trash2 size={12} aria-hidden="true" />
-            Cestino
-          </button>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setView("find")}
+              className="flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-secondary hover:bg-muted hover:text-foreground"
+            >
+              <FolderSearch size={12} aria-hidden="true" />
+              Trova pratiche
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setView("trash");
+                setTrashRefreshKey((k) => k + 1);
+              }}
+              className="flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-secondary hover:bg-muted hover:text-foreground"
+            >
+              <Trash2 size={12} aria-hidden="true" />
+              Cestino
+            </button>
+          </div>
         </>
-      ) : (
+      ) : view === "trash" ? (
         <>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold text-secondary">Cestino (7 giorni)</span>
@@ -213,6 +276,28 @@ export default function PracticeSidebar({
             onRestored={() => {
               setTrashRefreshKey((k) => k + 1);
               onRestored();
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-secondary">
+              Trova pratiche (tutte le sezioni)
+            </span>
+            <button
+              type="button"
+              onClick={() => setView("active")}
+              className="rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
+              aria-label="Torna alle pratiche"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+          <FindView
+            onFound={(p) => {
+              onFoundPractice(p);
+              setView("active");
             }}
           />
         </>

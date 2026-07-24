@@ -52,6 +52,10 @@ module.exports = async function handler(req, res) {
       ? query.not("deleted_at", "is", null).order("deleted_at", { ascending: false })
       : query.is("deleted_at", null).order("updated_at", { ascending: false });
 
+    if (req.query.practiceType) {
+      query = query.eq("practice_type", req.query.practiceType);
+    }
+
     const { data, error } = await query;
 
     if (error) {
