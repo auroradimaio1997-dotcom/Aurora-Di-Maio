@@ -219,10 +219,14 @@ function CategoryUploadSection({
   label,
   category,
   practiceId,
+  portalUrl,
+  portalLabel,
 }: {
   label: string;
   category: DocumentCategory;
   practiceId: string;
+  portalUrl?: string;
+  portalLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -263,6 +267,15 @@ function CategoryUploadSection({
 
       {open && (
         <div className="space-y-2 border-t p-3 text-xs">
+          {portalUrl && (
+            <button
+              type="button"
+              onClick={() => window.open(portalUrl, "_blank", "noopener")}
+              className="w-full rounded-full border px-3 py-1.5 font-medium text-foreground hover:bg-muted"
+            >
+              Apri {portalLabel}
+            </button>
+          )}
           <input
             type="file"
             accept="application/pdf,.docx,.doc,image/jpeg,image/png"
@@ -479,6 +492,8 @@ export default function PracticeWorkspace({
         label="Dottrina e giurisprudenza di riferimento"
         category="Dottrina e Giurisprudenza"
         practiceId={practice.practice_id}
+        portalUrl="https://www.onelegale.it"
+        portalLabel="OneLegale"
       />
 
       <SchemaSection
