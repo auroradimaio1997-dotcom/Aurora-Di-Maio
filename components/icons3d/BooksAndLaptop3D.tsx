@@ -20,7 +20,7 @@ function BooksAndLaptop() {
   const bookColors = ["#7a4a24", "#5c1f2e", "#8a5a2b"];
 
   return (
-    <group ref={group} position={[0, -0.1, 0]}>
+    <group ref={group} position={[-0.11, 0.02, 0]} scale={0.58}>
       {bookColors.map((color, i) => (
         <mesh
           key={color}

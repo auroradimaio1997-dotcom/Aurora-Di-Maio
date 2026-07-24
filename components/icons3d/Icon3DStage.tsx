@@ -20,7 +20,7 @@ export default function Icon3DStage({
     <div style={{ width: size, height: size }} className="shrink-0">
       <Canvas
         dpr={[1, 1.5]}
-        camera={{ fov: 32, position: [0, 0.4, 3] }}
+        camera={{ fov: 30, position: [0, 0.35, 3.6] }}
         gl={{ antialias: true }}
       >
         <directionalLight position={[2.5, 3, 3]} intensity={2} />
