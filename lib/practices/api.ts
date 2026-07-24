@@ -161,6 +161,14 @@ export function createTemplate(input: {
   });
 }
 
+export function updateTemplate(templateId: string, patch: { title?: string; notes?: string }) {
+  return request<{ template: PracticeTemplate }>(`/api/practice-templates/${templateId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+}
+
 export function deleteTemplate(templateId: string) {
   return request<{ ok: true }>(`/api/practice-templates/${templateId}`, {
     method: "DELETE",

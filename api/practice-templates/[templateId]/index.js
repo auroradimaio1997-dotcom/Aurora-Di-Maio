@@ -42,6 +42,35 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  if (req.method === "PATCH") {
+    let body = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+
+    const patch = { updated_at: new Date().toISOString() };
+    if (body?.title) patch.title = String(body.title).trim();
+    if (body?.notes !== undefined) patch.notes = body.notes;
+
+    const { data, error } = await supabase
+      .from("practice_templates")
+      .update(patch)
+      .eq("template_id", templateId)
+      .select()
+      .single();
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ template: data });
+    return;
+  }
+
   if (req.method === "DELETE") {
     const { data: tpl } = await supabase
       .from("practice_templates")

@@ -14,6 +14,7 @@ import {
   Landmark,
   Loader2,
   MessageCircleQuestion,
+  Pencil,
   Plus,
   Send,
   Trash2,
@@ -30,6 +31,7 @@ import {
   readFileAsBase64,
   saveClausoleAggiuntive,
   updatePracticeStatus,
+  updateTemplate,
   uploadDocument,
 } from "@/lib/practices/api";
 import type { DocumentCategory, Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
@@ -202,6 +204,10 @@ function SchemaSection({
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -254,6 +260,28 @@ function SchemaSection({
     if (activeTemplateId === templateId) onActiveTemplateChange(null);
   }
 
+  function startEdit(t: PracticeTemplate) {
+    setEditingId(t.template_id);
+    setEditTitle(t.title);
+    setEditNotes(t.notes ?? "");
+  }
+
+  async function handleSaveEdit(templateId: string) {
+    if (!editTitle.trim()) return;
+    setEditSaving(true);
+    try {
+      const { template } = await updateTemplate(templateId, {
+        title: editTitle.trim(),
+        notes: editNotes.trim() || undefined,
+      });
+      setTemplates((prev) => prev.map((t) => (t.template_id === templateId ? template : t)));
+      if (activeTemplateId === templateId) onActiveTemplateChange(template);
+      setEditingId(null);
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   return (
     <div className="mb-3 rounded-lg border">
       <button
@@ -300,6 +328,14 @@ function SchemaSection({
                   </button>
                   <button
                     type="button"
+                    onClick={() => startEdit(t)}
+                    className="text-secondary hover:text-foreground"
+                    aria-label="Modifica schema"
+                  >
+                    <Pencil size={12} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleDelete(t.template_id)}
                     className="text-secondary hover:text-destructive"
                     aria-label="Elimina schema"
@@ -307,7 +343,42 @@ function SchemaSection({
                     <Trash2 size={12} aria-hidden="true" />
                   </button>
                 </div>
-                {t.notes && <p className="mt-1 pl-5 text-secondary">{t.notes}</p>}
+                {editingId === t.template_id ? (
+                  <div className="mt-1.5 space-y-1.5 pl-5">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full rounded-md border bg-background px-2 py-1 text-foreground"
+                    />
+                    <textarea
+                      value={editNotes}
+                      onChange={(e) => setEditNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Rispetto a questo schema, cambia questo…"
+                      className="w-full resize-none rounded-md border bg-background px-2 py-1 text-foreground"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEdit(t.template_id)}
+                        disabled={!editTitle.trim() || editSaving}
+                        className="flex-1 rounded-full bg-blue-600 py-1 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {editSaving ? "Salvataggio…" : "Salva modifiche"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="rounded-full border px-3 py-1 text-secondary"
+                      >
+                        Annulla
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  t.notes && <p className="mt-1 pl-5 text-secondary">{t.notes}</p>
+                )}
               </div>
             ))}
           </div>
