@@ -14,6 +14,25 @@ import {
 } from "@/lib/practices/api";
 import { DOCUMENT_CATEGORIES, type DocumentCategory, type PracticeDocument, type PracticeTemplate } from "@/lib/practices/types";
 
+async function downloadFromUrl(url: string, filename: string) {
+  // Fetches the signed URL into a blob first — setting `download` on an
+  // anchor pointing straight at a cross-origin (Supabase) URL gets
+  // ignored by most browsers, so this is what actually forces a save
+  // instead of just opening a preview tab.
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+}
+
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -110,6 +129,7 @@ type ListedItem = {
   name: string;
   meta: string;
   onOpen: () => void;
+  onDownload: () => void;
   onDelete: () => void;
 };
 
@@ -143,8 +163,15 @@ function DocumentGroup({ label, items, defaultOpen }: { label: string; items: Li
                   onClick={item.onOpen}
                   className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-muted hover:text-foreground"
                 >
-                  <Download size={12} aria-hidden="true" />
                   Apri
+                </button>
+                <button
+                  type="button"
+                  onClick={item.onDownload}
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-muted hover:text-foreground"
+                >
+                  <Download size={12} aria-hidden="true" />
+                  Scarica
                 </button>
                 <button
                   type="button"
@@ -217,6 +244,11 @@ export default function DocumentsPanel({
     window.open(url, "_blank", "noopener");
   }
 
+  async function handleDownloadDocument(doc: PracticeDocument) {
+    const { url } = await getDocumentSignedUrl(practiceId, doc.document_id);
+    await downloadFromUrl(url, doc.name);
+  }
+
   async function handleDeleteDocument(doc: PracticeDocument) {
     if (!window.confirm(`Eliminare "${doc.name}"? L'operazione non è reversibile.`)) return;
     await deleteDocument(practiceId, doc.document_id);
@@ -226,6 +258,11 @@ export default function DocumentsPanel({
   async function handleOpenTemplate(tpl: PracticeTemplate) {
     const { url } = await getTemplateSignedUrl(tpl.template_id);
     window.open(url, "_blank", "noopener");
+  }
+
+  async function handleDownloadTemplate(tpl: PracticeTemplate) {
+    const { url } = await getTemplateSignedUrl(tpl.template_id);
+    await downloadFromUrl(url, tpl.title);
   }
 
   async function handleDeleteTemplate(tpl: PracticeTemplate) {
@@ -240,6 +277,7 @@ export default function DocumentsPanel({
       name: doc.name,
       meta: `${formatSize(doc.size_bytes)} · ${new Date(doc.uploaded_at).toLocaleDateString("it-IT")}`,
       onOpen: () => handleOpenDocument(doc),
+      onDownload: () => handleDownloadDocument(doc),
       onDelete: () => handleDeleteDocument(doc),
     };
   }
@@ -343,6 +381,7 @@ export default function DocumentsPanel({
             name: t.title,
             meta: new Date(t.created_at).toLocaleDateString("it-IT"),
             onOpen: () => handleOpenTemplate(t),
+            onDownload: () => handleDownloadTemplate(t),
             onDelete: () => handleDeleteTemplate(t),
           }))}
         />

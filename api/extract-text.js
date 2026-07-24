@@ -43,14 +43,17 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const text = await extractText(buffer, mimeType, fileName);
-  if (!text) {
-    res.status(422).json({
-      error:
-        "Non sono riuscita a estrarre il testo da questo file. Sono supportati solo PDF, Word (.docx) e file di testo (.txt) — i .doc del vecchio formato Word non sono ancora supportati.",
-    });
-    return;
+  try {
+    const text = await extractText(buffer, mimeType, fileName);
+    if (!text) {
+      res.status(422).json({
+        error:
+          "Non sono riuscita a estrarre il testo da questo file. Sono supportati solo PDF, Word (.docx) e file di testo (.txt) — i .doc del vecchio formato Word non sono ancora supportati.",
+      });
+      return;
+    }
+    res.status(200).json({ text });
+  } catch (err) {
+    res.status(500).json({ error: `Errore nell'estrazione: ${err.message}` });
   }
-
-  res.status(200).json({ text });
 };
