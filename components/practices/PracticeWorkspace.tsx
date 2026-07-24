@@ -1161,6 +1161,7 @@ export default function PracticeWorkspace({
               <div className="space-y-3 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-sans [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
                 <ReactMarkdown>{m.text}</ReactMarkdown>
               </div>
+              <ActMessageActions text={stripMarkdown(m.text)} />
             </div>
           )
         )}
