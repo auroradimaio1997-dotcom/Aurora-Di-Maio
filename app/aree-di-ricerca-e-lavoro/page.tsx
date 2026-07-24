@@ -1,23 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import AppShell from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
   title: "Aree di Ricerca e Lavoro | AI Aurora Studio",
 };
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const AREAS = [
   {
     label: "Assistente Notarile",
     href: "/assistente-notarile",
     description: "Redazione atti, ricerca giuridica, dottrina, tassazione e adempimenti.",
-    emoji: "⚖️",
+    icon: `${BASE_PATH}/icons/notaio.jpg`,
   },
   {
     label: "Accademia",
     href: "/accademia",
     description: "Dottorato, ricerca, lavori in corso e monografia.",
-    emoji: "🎓",
+    icon: `${BASE_PATH}/icons/accademia.jpg`,
   },
 ];
 
@@ -42,9 +45,14 @@ export default function AreeDiRicercaELavoroPage() {
             href={area.href}
             className="group flex flex-col gap-2 rounded-xl border bg-background p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
           >
-            <span className="text-2xl" aria-hidden="true">
-              {area.emoji}
-            </span>
+            <Image
+              src={area.icon}
+              alt=""
+              aria-hidden="true"
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-lg object-cover"
+            />
             <span className="font-serif text-lg font-semibold text-foreground">
               {area.label}
             </span>
