@@ -54,14 +54,6 @@ export const NAV: NavSection[] = [
           },
         ],
       },
-      {
-        label: "Visure",
-        href: "/assistente-notarile/visure-adempimenti",
-        children: [
-          { label: "Visure camerali", href: "/assistente-notarile/visure-adempimenti/visure-camerali" },
-          { label: "Visure ipocatastali", href: "/assistente-notarile/visure-adempimenti/visure-ipocatastali" },
-        ],
-      },
     ],
   },
   {

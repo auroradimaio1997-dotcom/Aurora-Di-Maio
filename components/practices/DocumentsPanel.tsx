@@ -398,10 +398,17 @@ export default function DocumentsPanel({
         <DocumentGroup label="Dichiarazione di Successione" items={dichiarazioneSuccessione.map(docToItem)} />
         <DocumentGroup label="Certificato di Morte" items={certificatoMorte.map(docToItem)} />
         <DocumentGroup label="Regime Patrimoniale" items={regimePatrimoniale.map(docToItem)} />
-        <DocumentGroup label="Bilancio" items={bilancio.map(docToItem)} />
-        <DocumentGroup label="Situazione Patrimoniale Aggiornata" items={situazionePatrimoniale.map(docToItem)} />
-        <DocumentGroup label="Verbali Adunanze Soci e CDA" items={verbaliAdunanze.map(docToItem)} />
-        <DocumentGroup label="Altri Verbali" items={altriVerbali.map(docToItem)} />
+        {practiceType === "Societario" && (
+          <>
+            <DocumentGroup label="Bilancio" items={bilancio.map(docToItem)} />
+            <DocumentGroup
+              label="Situazione Patrimoniale Aggiornata"
+              items={situazionePatrimoniale.map(docToItem)}
+            />
+            <DocumentGroup label="Verbali Adunanze Soci e CDA" items={verbaliAdunanze.map(docToItem)} />
+            <DocumentGroup label="Altri Verbali" items={altriVerbali.map(docToItem)} />
+          </>
+        )}
         <DocumentGroup label="Altri documenti" items={altri.map(docToItem)} />
       </div>
     </div>
