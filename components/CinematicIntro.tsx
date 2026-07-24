@@ -112,7 +112,7 @@ export default function CinematicIntro() {
             whileTap={{ scale: 0.97 }}
             className="inline-block rounded-full bg-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-navy transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
-            Lavora con AI Aurora Studio
+            Chat Rapida di Studio e Lavoro
           </motion.span>
         </Link>
 
