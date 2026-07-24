@@ -50,6 +50,22 @@ export function updatePractice(practiceId: string, patch: Partial<Practice>) {
   });
 }
 
+export function updatePracticeStatus(practiceId: string, status: string) {
+  return request<{ practice: Practice }>(`/api/practices/${practiceId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function saveClausoleAggiuntive(practiceId: string, clausoleAggiuntive: string) {
+  return request<{ practice: Practice }>(`/api/practices/${practiceId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clausoleAggiuntive }),
+  });
+}
+
 export function trashPractice(practiceId: string) {
   return request<{ practice: Practice }>(`/api/practices/${practiceId}`, {
     method: "PATCH",

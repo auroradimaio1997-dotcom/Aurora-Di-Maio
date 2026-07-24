@@ -22,9 +22,12 @@ import {
   listTemplates,
   postMessage,
   readFileAsBase64,
+  saveClausoleAggiuntive,
+  updatePracticeStatus,
   uploadDocument,
 } from "@/lib/practices/api";
 import type { DocumentCategory, Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+import { PRACTICE_STATUSES } from "@/lib/practices/types";
 
 const PLACEHOLDER_SPLIT_PATTERN = /(\[[^\]\n]+\])/g;
 const PLACEHOLDER_TEST_PATTERN = /^\[[^\]\n]+\]$/;
@@ -383,18 +386,62 @@ function CategoryUploadSection({
 }
 
 /**
- * Free-text extra clauses the notary wants folded into the draft — kept
- * for the current session only (not persisted), appended as context
- * whenever a message is sent.
+ * Free-text extra clauses the notary wants folded into the draft —
+ * persisted to the practice record, with an explicit save action and an
+ * undo/redo history stack, appended as context whenever a message is sent.
  */
 function ClausoleAggiuntiveSection({
+  practiceId,
   value,
   onChange,
+  savedValue,
+  onSaved,
 }: {
+  practiceId: string;
   value: string;
   onChange: (value: string) => void;
+  savedValue: string;
+  onSaved: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [history, setHistory] = useState<string[]>([value]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  const dirty = value !== savedValue;
+
+  function handleTextChange(next: string) {
+    onChange(next);
+    setSaveStatus("idle");
+    const truncated = history.slice(0, historyIndex + 1);
+    setHistory([...truncated, next]);
+    setHistoryIndex(truncated.length);
+  }
+
+  function handleUndo() {
+    if (historyIndex === 0) return;
+    const i = historyIndex - 1;
+    setHistoryIndex(i);
+    onChange(history[i]);
+  }
+
+  function handleRedo() {
+    if (historyIndex >= history.length - 1) return;
+    const i = historyIndex + 1;
+    setHistoryIndex(i);
+    onChange(history[i]);
+  }
+
+  async function handleSave() {
+    setSaveStatus("saving");
+    try {
+      await saveClausoleAggiuntive(practiceId, value);
+      onSaved(value);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("error");
+    }
+  }
 
   return (
     <div className="mb-3 rounded-lg border">
@@ -403,7 +450,10 @@ function ClausoleAggiuntiveSection({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
       >
-        <span>Clausole aggiuntive</span>
+        <span className="flex items-center gap-1.5">
+          Clausole aggiuntive
+          {dirty && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden="true" />}
+        </span>
         {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
       </button>
 
@@ -411,11 +461,41 @@ function ClausoleAggiuntiveSection({
         <div className="border-t p-3 text-xs">
           <textarea
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => handleTextChange(e.target.value)}
             rows={3}
             placeholder="Scrivi qui eventuali clausole da aggiungere all'atto…"
             className="w-full resize-none rounded-md border bg-background px-2 py-1.5 text-foreground"
           />
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleUndo}
+              disabled={historyIndex === 0}
+              className="rounded-full border px-2.5 py-1 text-secondary hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Annulla
+            </button>
+            <button
+              type="button"
+              onClick={handleRedo}
+              disabled={historyIndex >= history.length - 1}
+              className="rounded-full border px-2.5 py-1 text-secondary hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Ripeti
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!dirty || saveStatus === "saving"}
+              className="ml-auto rounded-full bg-blue-600 px-3 py-1 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saveStatus === "saving" ? "Salvataggio…" : "Salva modifiche"}
+            </button>
+          </div>
+          {saveStatus === "saved" && !dirty && (
+            <p className="mt-1 text-blue-500">Modifiche salvate nella pratica.</p>
+          )}
+          {saveStatus === "error" && <p className="mt-1 text-destructive">Errore nel salvataggio.</p>}
         </div>
       )}
     </div>
@@ -463,17 +543,26 @@ function VisureHub({ onOpenPortal }: { onOpenPortal: (category: "Visure ipocatas
 export default function PracticeWorkspace({
   practice,
   onOpenVisuraPortal,
+  onPracticeUpdated,
 }: {
   practice: Practice;
   onOpenVisuraPortal: (category: "Visure ipocatastali" | "Visure camerali") => void;
+  onPracticeUpdated?: (practice: Practice) => void;
 }) {
   const [messages, setMessages] = useState<PracticeMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "not-configured" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [activeTemplate, setActiveTemplate] = useState<PracticeTemplate | null>(null);
-  const [clausoleAggiuntive, setClausoleAggiuntive] = useState("");
+  const [clausoleAggiuntive, setClausoleAggiuntive] = useState(practice.clausole_aggiuntive ?? "");
+  const [savedClausoleAggiuntive, setSavedClausoleAggiuntive] = useState(practice.clausole_aggiuntive ?? "");
+  const [statusSaving, setStatusSaving] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setClausoleAggiuntive(practice.clausole_aggiuntive ?? "");
+    setSavedClausoleAggiuntive(practice.clausole_aggiuntive ?? "");
+  }, [practice.practice_id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -490,6 +579,16 @@ export default function PracticeWorkspace({
       cancelled = true;
     };
   }, [practice.practice_id]);
+
+  async function handleStatusChange(newStatus: string) {
+    setStatusSaving(true);
+    try {
+      const { practice: updated } = await updatePracticeStatus(practice.practice_id, newStatus);
+      onPracticeUpdated?.(updated);
+    } finally {
+      setStatusSaving(false);
+    }
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -599,9 +698,22 @@ export default function PracticeWorkspace({
     <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
       <div className="mb-3 border-b pb-3">
         <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
-        <p className="text-xs text-secondary">
-          {practice.practice_type} · {practice.area} · {practice.status}
-        </p>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-secondary">
+          <span>{practice.practice_type} · {practice.area} ·</span>
+          <select
+            value={practice.status}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            disabled={statusSaving}
+            className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-foreground disabled:opacity-60"
+          >
+            {PRACTICE_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          {statusSaving && <Loader2 size={12} className="animate-spin" aria-hidden="true" />}
+        </div>
       </div>
 
       {status === "not-configured" && (
@@ -694,7 +806,13 @@ export default function PracticeWorkspace({
           </>
         )}
 
-        <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
+        <ClausoleAggiuntiveSection
+          practiceId={practice.practice_id}
+          value={clausoleAggiuntive}
+          onChange={setClausoleAggiuntive}
+          savedValue={savedClausoleAggiuntive}
+          onSaved={setSavedClausoleAggiuntive}
+        />
       </div>
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">

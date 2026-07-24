@@ -69,6 +69,7 @@ export type Practice = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  clausole_aggiuntive: string | null;
 };
 
 export type PracticeDocument = {

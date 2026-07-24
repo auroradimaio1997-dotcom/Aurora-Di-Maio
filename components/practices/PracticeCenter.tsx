@@ -69,6 +69,19 @@ export default function PracticeCenter({
     setSelectedId(practice.practice_id);
   }
 
+  function handlePracticeUpdated(updated: Practice) {
+    setPractices((prev) =>
+      prev.some((p) => p.practice_id === updated.practice_id)
+        ? prev.map((p) => (p.practice_id === updated.practice_id ? updated : p))
+        : prev
+    );
+    setForeignPractices((prev) =>
+      prev.some((p) => p.practice_id === updated.practice_id)
+        ? prev.map((p) => (p.practice_id === updated.practice_id ? updated : p))
+        : prev
+    );
+  }
+
   const selected =
     practices.find((p) => p.practice_id === selectedId) ??
     foreignPractices.find((p) => p.practice_id === selectedId) ??
@@ -161,7 +174,11 @@ export default function PracticeCenter({
         )}
         {mobileView === "chat" &&
           (selected ? (
-            <PracticeWorkspace practice={selected} onOpenVisuraPortal={handleOpenVisuraPortal} />
+            <PracticeWorkspace
+              practice={selected}
+              onOpenVisuraPortal={handleOpenVisuraPortal}
+              onPracticeUpdated={handlePracticeUpdated}
+            />
           ) : (
             <p className="p-4 text-sm text-secondary">Seleziona o crea una pratica.</p>
           ))}
@@ -184,7 +201,11 @@ export default function PracticeCenter({
       <div className="hidden flex-1 md:flex">
         {selected ? (
           <>
-            <PracticeWorkspace practice={selected} onOpenVisuraPortal={handleOpenVisuraPortal} />
+            <PracticeWorkspace
+              practice={selected}
+              onOpenVisuraPortal={handleOpenVisuraPortal}
+              onPracticeUpdated={handlePracticeUpdated}
+            />
             <DocumentsPanel
               practiceId={selected.practice_id}
               practiceType={selected.practice_type}

@@ -52,6 +52,7 @@ module.exports = async function handler(req, res) {
     }
     if (body?.parties !== undefined) patch.parties = body.parties;
     if (body?.description !== undefined) patch.description = body.description;
+    if (body?.clausoleAggiuntive !== undefined) patch.clausole_aggiuntive = body.clausoleAggiuntive;
     if (body?.trash === true) patch.deleted_at = new Date().toISOString();
     if (body?.restore === true) patch.deleted_at = null;
 
