@@ -1,28 +1,9 @@
 const crypto = require("crypto");
 const { getSupabaseServerClient } = require("../lib/practices/supabaseServer");
 const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../lib/practices/shared");
+const { extractText } = require("../lib/practices/extractText");
 
 const MAX_BYTES = 4 * 1024 * 1024;
-
-async function extractText(buffer, mimeType) {
-  try {
-    if (mimeType === "application/pdf") {
-      const pdfParse = require("pdf-parse");
-      const result = await pdfParse(buffer);
-      return result.text?.trim() || null;
-    }
-    if (
-      mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
-      const mammoth = require("mammoth");
-      const result = await mammoth.extractRawText({ buffer });
-      return result.value?.trim() || null;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
 
 module.exports = async function handler(req, res) {
   setCors(res);

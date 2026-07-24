@@ -152,6 +152,14 @@ export function getTemplateSignedUrl(templateId: string) {
   return request<{ url: string }>(`/api/practice-templates/${templateId}?signedUrl=1`);
 }
 
+export function extractDocumentText(input: { mimeType: string; dataBase64: string }) {
+  return request<{ text: string }>("/api/extract-text", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
 export function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

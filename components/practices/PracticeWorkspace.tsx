@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ChevronDown, ChevronRight, FileText, Loader2, Plus, Send, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardCheck, FileText, Loader2, Plus, Send, Trash2 } from "lucide-react";
 import {
   createTemplate,
   deleteTemplate,
+  extractDocumentText,
   listMessages,
   listTemplates,
   postMessage,
@@ -12,6 +13,31 @@ import {
   uploadDocument,
 } from "@/lib/practices/api";
 import type { DocumentCategory, Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+
+const PLACEHOLDER_SPLIT_PATTERN = /(\[[^\]\n]+\])/g;
+const PLACEHOLDER_TEST_PATTERN = /^\[[^\]\n]+\]$/;
+
+/** Renders act text with [SEGNAPOSTO] placeholders highlighted so the
+ * notary immediately sees what still needs to be filled in. */
+function HighlightedActText({ text }: { text: string }) {
+  const parts = text.split(PLACEHOLDER_SPLIT_PATTERN);
+  return (
+    <>
+      {parts.map((part, i) =>
+        PLACEHOLDER_TEST_PATTERN.test(part) ? (
+          <mark
+            key={i}
+            className="rounded bg-yellow-300/40 px-1 font-sans text-[9pt] font-semibold text-yellow-800 dark:text-yellow-200"
+          >
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
 
 function stripMarkdown(text: string) {
   return text
@@ -417,39 +443,26 @@ export default function PracticeWorkspace({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || status === "loading") return;
-    setInput("");
+  /**
+   * Posts a user-visible message and sends the agent an optionally
+   * different, richer prompt (schema/clausole context, or a full draft
+   * to review). Shared by normal chat submission and "Revisiona bozza".
+   */
+  async function sendToAgent(displayText: string, agentMessage: string) {
     setStatus("loading");
     setErrorMsg("");
 
     try {
       const { message: userMessage } = await postMessage(practice.practice_id, {
         role: "user",
-        text,
+        text: displayText,
       });
       setMessages((prev) => [...prev, userMessage]);
-
-      let contextualMessage = text;
-      if (activeTemplate) {
-        const schemaText = activeTemplate.content
-          ? `Segui questo schema come modello per la redazione:\n\n${activeTemplate.content}`
-          : `Segui lo schema "${activeTemplate.title}" come modello per la redazione (il testo non è stato estratto automaticamente dal file).`;
-        const notesText = activeTemplate.notes
-          ? `\n\nRispetto allo schema, tieni conto di questo: ${activeTemplate.notes}`
-          : "";
-        contextualMessage = `${schemaText}${notesText}\n\nRichiesta: ${text}`;
-      }
-      if (clausoleAggiuntive.trim()) {
-        contextualMessage = `${contextualMessage}\n\nClausole aggiuntive da inserire nell'atto: ${clausoleAggiuntive.trim()}`;
-      }
 
       const res = await fetch("/api/agente-coordinatore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: contextualMessage }),
+        body: JSON.stringify({ message: agentMessage }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -468,6 +481,54 @@ export default function PracticeWorkspace({
       } else {
         setStatus("error");
         setErrorMsg(err instanceof Error ? err.message : "Errore imprevisto. Riprova.");
+      }
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || status === "loading") return;
+    setInput("");
+
+    let contextualMessage = text;
+    if (activeTemplate) {
+      const schemaText = activeTemplate.content
+        ? `Segui questo schema come modello per la redazione:\n\n${activeTemplate.content}`
+        : `Segui lo schema "${activeTemplate.title}" come modello per la redazione (il testo non è stato estratto automaticamente dal file).`;
+      const notesText = activeTemplate.notes
+        ? `\n\nRispetto allo schema, tieni conto di questo: ${activeTemplate.notes}`
+        : "";
+      contextualMessage = `${schemaText}${notesText}\n\nRichiesta: ${text}`;
+    }
+    if (clausoleAggiuntive.trim()) {
+      contextualMessage = `${contextualMessage}\n\nClausole aggiuntive da inserire nell'atto: ${clausoleAggiuntive.trim()}`;
+    }
+
+    await sendToAgent(text, contextualMessage);
+  }
+
+  async function handleReviewDraft(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || status === "loading") return;
+
+    setStatus("loading");
+    setErrorMsg("");
+    try {
+      const dataBase64 = await readFileAsBase64(file);
+      const { text } = await extractDocumentText({
+        mimeType: file.type || "application/octet-stream",
+        dataBase64,
+      });
+      const reviewPrompt = `Rivedi la seguente bozza di atto notarile in ogni suo aspetto: correttezza grammaticale e ortografica, rispetto della normativa vigente, correttezza delle formalità e delle clausole di stile tipiche di un atto notarile italiano. Segnala puntualmente ogni problema trovato e, dove utile, proponi la correzione.\n\nBOZZA:\n${text}`;
+      await sendToAgent(`Revisione bozza: ${file.name}`, reviewPrompt);
+    } catch (err) {
+      if (err instanceof Error && err.name === "PracticeStorageNotConfiguredError") {
+        setStatus("not-configured");
+      } else {
+        setStatus("error");
+        setErrorMsg(err instanceof Error ? err.message : "Errore nell'estrazione del file.");
       }
     }
   }
@@ -537,7 +598,7 @@ export default function PracticeWorkspace({
               className="max-w-[85ch] select-text whitespace-pre-wrap text-foreground"
               style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
             >
-              {stripMarkdown(m.text)}
+              <HighlightedActText text={stripMarkdown(m.text)} />
             </div>
           )
         )}
@@ -550,7 +611,19 @@ export default function PracticeWorkspace({
         {status === "error" && <p className="text-sm text-destructive">{errorMsg}</p>}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-3 flex items-center gap-2 rounded-full border bg-background px-2 py-2">
+      <label className="mt-3 flex w-fit cursor-pointer items-center gap-1.5 self-end rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground">
+        <ClipboardCheck size={13} aria-hidden="true" />
+        Revisiona bozza
+        <input
+          type="file"
+          accept="application/pdf,.docx,.doc,.txt"
+          onChange={handleReviewDraft}
+          disabled={status === "loading"}
+          className="hidden"
+        />
+      </label>
+
+      <form onSubmit={handleSubmit} className="mt-2 flex items-center gap-2 rounded-full border bg-background px-2 py-2">
         <input
           type="text"
           value={input}
