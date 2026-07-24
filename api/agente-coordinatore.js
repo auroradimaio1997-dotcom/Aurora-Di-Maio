@@ -46,8 +46,11 @@ module.exports = async function handler(req, res) {
     res.status(400).json({ error: "Scrivi un messaggio." });
     return;
   }
-  if (message.length > 2000) {
-    res.status(400).json({ error: "Messaggio troppo lungo (max 2000 caratteri)." });
+  // Raised from the original 2000 to accommodate full document review
+  // (a real atto notarile easily runs several thousand characters) while
+  // still guarding against runaway payloads.
+  if (message.length > 30000) {
+    res.status(400).json({ error: "Messaggio troppo lungo (max 30000 caratteri)." });
     return;
   }
 
