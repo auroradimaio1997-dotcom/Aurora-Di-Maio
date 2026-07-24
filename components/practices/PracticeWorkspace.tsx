@@ -816,123 +816,6 @@ export default function PracticeWorkspace({
 
   return (
     <div className="flex h-full min-w-0 flex-1 overflow-hidden">
-      {sectionsOpen ? (
-        <div className="flex h-full w-72 shrink-0 flex-col overflow-y-auto border-r bg-background p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Carica documenti</h3>
-            <button
-              type="button"
-              onClick={() => setSectionsOpen(false)}
-              className="rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
-              aria-label="Richiudi carica documenti"
-            >
-              <ChevronLeft size={16} aria-hidden="true" />
-            </button>
-          </div>
-
-          <div className="space-y-0">
-            <CategoryUploadSection
-          label="Dottrina e giurisprudenza di riferimento"
-          category="Dottrina e Giurisprudenza"
-          practiceId={practice.practice_id}
-          portals={[
-            { url: "https://onelegale.wolterskluwer.it", label: "OneLegale" },
-            { url: "https://cnnnotizie.notariato.it", label: "Banche dati notarili" },
-          ]}
-          helpText="Carica o cerca tu manualmente dottrina e giurisprudenza che ritieni l'AI non abbia trovato."
-          helpLink={{
-            href: "/assistente-notarile/ricerca-scientifica",
-            label: "Vuoi approfondire con l'AI? Vai a Fai una ricerca scientifica approfondita →",
-          }}
-        />
-
-        <SchemaSection
-          practiceType={practice.practice_type}
-          activeTemplateId={activeTemplate?.template_id ?? null}
-          onActiveTemplateChange={setActiveTemplate}
-        />
-
-        <VisureHub
-          onOpenPortal={(category) => {
-            window.open(SMARTACCESS_URL, "_blank", "noopener");
-            onOpenVisuraPortal(category);
-          }}
-        />
-
-        <CategoryUploadSection
-          label="Documenti di identità delle parti"
-          category="Documenti delle parti"
-          practiceId={practice.practice_id}
-        />
-
-        <CategoryUploadSection
-          label="Dichiarazione di Successione"
-          category="Dichiarazione di Successione"
-          practiceId={practice.practice_id}
-        />
-
-        <CategoryUploadSection
-          label="Certificato di morte"
-          category="Certificato di Morte"
-          practiceId={practice.practice_id}
-        />
-
-        <CategoryUploadSection
-          label="Regime patrimoniale"
-          category="Regime Patrimoniale"
-          practiceId={practice.practice_id}
-          portals={[{ url: SMARTACCESS_URL, label: "SmartRUN — Anagrafica" }]}
-        />
-
-        {practice.practice_type === "Societario" && (
-          <>
-            <CategoryUploadSection
-              label="Bilancio"
-              category="Bilancio"
-              practiceId={practice.practice_id}
-              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
-            />
-            <CategoryUploadSection
-              label="Situazione Patrimoniale Aggiornata"
-              category="Situazione Patrimoniale Aggiornata"
-              practiceId={practice.practice_id}
-              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
-            />
-            <CategoryUploadSection
-              label="Verbali Adunanze Soci e CDA"
-              category="Verbali Adunanze Soci e CDA"
-              practiceId={practice.practice_id}
-              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
-            />
-            <CategoryUploadSection
-              label="Altri Verbali"
-              category="Altri Verbali"
-              practiceId={practice.practice_id}
-              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
-            />
-          </>
-        )}
-
-            <ClausoleAggiuntiveSection
-              practiceId={practice.practice_id}
-              value={clausoleAggiuntive}
-              onChange={setClausoleAggiuntive}
-              savedValue={savedClausoleAggiuntive}
-              onSaved={setSavedClausoleAggiuntive}
-            />
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setSectionsOpen(true)}
-          className="flex h-full w-10 shrink-0 items-center justify-center border-r text-secondary hover:bg-muted hover:text-foreground"
-          aria-label="Apri carica documenti"
-        >
-          <Upload size={16} aria-hidden="true" />
-        </button>
-      )}
-
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
         <div className="mb-3 border-b pb-3">
           <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
@@ -1051,6 +934,124 @@ export default function PracticeWorkspace({
         </button>
       </form>
       </div>
+
+      {sectionsOpen ? (
+        <div className="flex h-full w-72 shrink-0 flex-col overflow-y-auto border-l bg-background p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Carica documenti</h3>
+            <button
+              type="button"
+              onClick={() => setSectionsOpen(false)}
+              className="rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
+              aria-label="Richiudi carica documenti"
+            >
+              <ChevronRight size={16} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="space-y-0">
+            <CategoryUploadSection
+          label="Dottrina e giurisprudenza di riferimento"
+          category="Dottrina e Giurisprudenza"
+          practiceId={practice.practice_id}
+          portals={[
+            { url: "https://onelegale.wolterskluwer.it", label: "OneLegale" },
+            { url: "https://cnnnotizie.notariato.it", label: "Banche dati notarili" },
+          ]}
+          helpText="Carica o cerca tu manualmente dottrina e giurisprudenza che ritieni l'AI non abbia trovato."
+          helpLink={{
+            href: "/assistente-notarile/ricerca-scientifica",
+            label: "Vuoi approfondire con l'AI? Vai a Fai una ricerca scientifica approfondita →",
+          }}
+        />
+
+        <SchemaSection
+          practiceType={practice.practice_type}
+          activeTemplateId={activeTemplate?.template_id ?? null}
+          onActiveTemplateChange={setActiveTemplate}
+        />
+
+        <VisureHub
+          onOpenPortal={(category) => {
+            window.open(SMARTACCESS_URL, "_blank", "noopener");
+            onOpenVisuraPortal(category);
+          }}
+        />
+
+        <CategoryUploadSection
+          label="Documenti di identità delle parti"
+          category="Documenti delle parti"
+          practiceId={practice.practice_id}
+        />
+
+        <CategoryUploadSection
+          label="Dichiarazione di Successione"
+          category="Dichiarazione di Successione"
+          practiceId={practice.practice_id}
+        />
+
+        <CategoryUploadSection
+          label="Certificato di morte"
+          category="Certificato di Morte"
+          practiceId={practice.practice_id}
+        />
+
+        <CategoryUploadSection
+          label="Regime patrimoniale"
+          category="Regime Patrimoniale"
+          practiceId={practice.practice_id}
+          portals={[{ url: SMARTACCESS_URL, label: "SmartRUN — Anagrafica" }]}
+        />
+
+        {practice.practice_type === "Societario" && (
+          <>
+            <CategoryUploadSection
+              label="Bilancio"
+              category="Bilancio"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Situazione Patrimoniale Aggiornata"
+              category="Situazione Patrimoniale Aggiornata"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Verbali Adunanze Soci e CDA"
+              category="Verbali Adunanze Soci e CDA"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+            <CategoryUploadSection
+              label="Altri Verbali"
+              category="Altri Verbali"
+              practiceId={practice.practice_id}
+              portals={[{ url: SMARTACCESS_URL, label: "SmartRUN" }]}
+            />
+          </>
+        )}
+
+            <ClausoleAggiuntiveSection
+              practiceId={practice.practice_id}
+              value={clausoleAggiuntive}
+              onChange={setClausoleAggiuntive}
+              savedValue={savedClausoleAggiuntive}
+              onSaved={setSavedClausoleAggiuntive}
+            />
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setSectionsOpen(true)}
+          className="flex h-full w-10 shrink-0 items-center justify-center border-l text-secondary hover:bg-muted hover:text-foreground"
+          aria-label="Apri carica documenti"
+        >
+          <Upload size={16} aria-hidden="true" />
+        </button>
+      )}
+
     </div>
   );
 }

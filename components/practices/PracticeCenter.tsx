@@ -201,6 +201,11 @@ export default function PracticeCenter({
       <div className="hidden flex-1 md:flex">
         {selected ? (
           <>
+            <PracticeWorkspace
+              practice={selected}
+              onOpenVisuraPortal={handleOpenVisuraPortal}
+              onPracticeUpdated={handlePracticeUpdated}
+            />
             <DocumentsPanel
               practiceId={selected.practice_id}
               practiceType={selected.practice_type}
@@ -208,11 +213,6 @@ export default function PracticeCenter({
               onToggleCollapsed={() => setDocsCollapsed((v) => !v)}
               pendingVisuraCategory={pendingVisuraCategory}
               onClearPendingVisura={() => setPendingVisuraCategory(null)}
-            />
-            <PracticeWorkspace
-              practice={selected}
-              onOpenVisuraPortal={handleOpenVisuraPortal}
-              onPracticeUpdated={handlePracticeUpdated}
             />
           </>
         ) : (

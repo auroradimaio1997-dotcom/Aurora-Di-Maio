@@ -301,7 +301,7 @@ export default function DocumentsPanel({
       <button
         type="button"
         onClick={onToggleCollapsed}
-        className="flex h-full w-10 shrink-0 items-center justify-center border-r text-secondary hover:bg-muted hover:text-foreground"
+        className="flex h-full w-10 shrink-0 items-center justify-center border-l text-secondary hover:bg-muted hover:text-foreground"
         aria-label="Apri documenti della pratica"
       >
         <FileText size={16} aria-hidden="true" />
@@ -310,7 +310,7 @@ export default function DocumentsPanel({
   }
 
   return (
-    <div className="flex h-full w-80 shrink-0 flex-col overflow-y-auto border-r bg-background p-3">
+    <div className="flex h-full w-80 shrink-0 flex-col overflow-y-auto border-l bg-background p-3">
       <div className="mb-1 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Documenti caricati</h3>
         <button
