@@ -245,14 +245,12 @@ function CategoryUploadSection({
   label,
   category,
   practiceId,
-  portalUrl,
-  portalLabel,
+  portals,
 }: {
   label: string;
   category: DocumentCategory;
   practiceId: string;
-  portalUrl?: string;
-  portalLabel?: string;
+  portals?: { url: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -293,15 +291,16 @@ function CategoryUploadSection({
 
       {open && (
         <div className="space-y-2 border-t p-3 text-xs">
-          {portalUrl && (
+          {portals?.map((portal) => (
             <button
+              key={portal.url}
               type="button"
-              onClick={() => window.open(portalUrl, "_blank", "noopener")}
+              onClick={() => window.open(portal.url, "_blank", "noopener")}
               className="w-full rounded-full border px-3 py-1.5 font-medium text-foreground hover:bg-muted"
             >
-              Apri {portalLabel}
+              Apri {portal.label}
             </button>
-          )}
+          ))}
           <input
             type="file"
             accept="application/pdf,.docx,.doc,image/jpeg,image/png"
@@ -555,8 +554,10 @@ export default function PracticeWorkspace({
           label="Dottrina e giurisprudenza di riferimento"
           category="Dottrina e Giurisprudenza"
           practiceId={practice.practice_id}
-          portalUrl="https://onelegale.wolterskluwer.it"
-          portalLabel="OneLegale"
+          portals={[
+            { url: "https://onelegale.wolterskluwer.it", label: "OneLegale" },
+            { url: "https://cnnnotizie.notariato.it", label: "Banche dati notarili" },
+          ]}
         />
 
         <SchemaSection
@@ -594,8 +595,7 @@ export default function PracticeWorkspace({
           label="Regime patrimoniale"
           category="Regime Patrimoniale"
           practiceId={practice.practice_id}
-          portalUrl={SMARTACCESS_URL}
-          portalLabel="SmartRUN — Anagrafica"
+          portals={[{ url: SMARTACCESS_URL, label: "SmartRUN — Anagrafica" }]}
         />
 
         <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
