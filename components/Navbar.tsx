@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
@@ -12,6 +13,21 @@ const links = [
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+// Checked in order — first match wins — so the status reflects what
+// Aurora is actually doing on the current page instead of a static
+// "Online".
+const STATUS_BY_PATH: { match: string; status: string }[] = [
+  { match: "/assistente-notarile/redazione-atti", status: "Sta scrivendo atti" },
+  { match: "/accademia", status: "Sto facendo ricerca" },
+];
+
+function statusForPath(pathname: string) {
+  return (
+    STATUS_BY_PATH.find(({ match }) => pathname.startsWith(match))?.status ??
+    "Online"
+  );
+}
+
 /**
  * Persistent header shown on every page. The single place that carries
  * brand identity (logo + avatar + online status) so it never has to be
@@ -19,6 +35,8 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
  */
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const status = statusForPath(pathname ?? "/");
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -41,7 +59,7 @@ export default function Navbar() {
             <span className="font-serif text-base font-semibold tracking-tight text-foreground">
               AI Aurora Studio
             </span>
-            <span className="text-[11px] font-medium text-secondary">Online</span>
+            <span className="text-[11px] font-medium text-secondary">{status}</span>
           </span>
         </Link>
 
