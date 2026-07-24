@@ -26,6 +26,10 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+function stripDividers(text: string) {
+  return text.replace(/^\s*([-*_])\s*\1\s*\1[-*_\s]*$/gm, "").trim();
+}
+
 function stripMarkdown(text: string) {
   return text
     .replace(/[#*_`>]/g, "")
@@ -248,8 +252,8 @@ export default function ChatWidget({
             </div>
           ) : (
             <div key={i} className="max-w-[85ch] select-text text-[15px] leading-7 text-foreground">
-              <div className="space-y-2 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
-                <ReactMarkdown>{m.text}</ReactMarkdown>
+              <div className="space-y-2 [&_a]:text-blue-500 [&_a]:underline [&_blockquote]:border-none [&_blockquote]:pl-0 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_hr]:hidden [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_table]:border-none [&_td]:border-none [&_th]:border-none [&_ul]:list-disc [&_ul]:pl-5">
+                <ReactMarkdown>{stripDividers(m.text)}</ReactMarkdown>
               </div>
               <MessageActions text={m.text} index={i} />
             </div>
