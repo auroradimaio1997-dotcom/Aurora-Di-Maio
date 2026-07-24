@@ -23,7 +23,7 @@ const SCENES: Scene[] = [
   {
     key: "laurea",
     label: "Laurea",
-    lines: ["La corona d'alloro.", "La pergamena. Il primo traguardo."],
+    lines: ["Università degli Studi di Napoli Parthenope, 110 L."],
     state: "smiling",
     start: 0,
     end: 12,
@@ -31,15 +31,15 @@ const SCENES: Scene[] = [
   {
     key: "dottorato",
     label: "Dottorato",
-    lines: ["Biblioteca, notte fonda.", "Ricerca, scrittura, riferimenti giuridici."],
+    lines: ["Università del Salento."],
     state: "writing",
     start: 12,
     end: 25,
   },
   {
     key: "notaio",
-    label: "Notaio",
-    lines: ["La firma. Il sigillo.", "ATTO AUTENTICATO"],
+    label: "Aspirazione",
+    lines: ["Diventare il Notaio Aurora Di Maio."],
     state: "stamping",
     start: 25,
     end: 34.02,
