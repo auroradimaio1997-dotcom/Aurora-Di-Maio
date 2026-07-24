@@ -54,6 +54,11 @@ export const NAV: NavSection[] = [
           },
         ],
       },
+      {
+        label: "Web Mail Notariato",
+        href: "/assistente-notarile/webmail-notariato",
+        children: [],
+      },
     ],
   },
   {

@@ -155,7 +155,7 @@ export default function ResearchTool({
     setMessages((prev) => [...prev, { role: "user", text }]);
 
     try {
-      const res = await fetch("/api/agente-coordinatore", {
+      const res = await fetch("/api/gemini-ricerca", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: `${promptFrame}\n\nRichiesta: ${text}` }),

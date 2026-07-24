@@ -8,6 +8,12 @@
     },
     "api/agente-coordinatore.js": {
       "maxDuration": 300
+    },
+    "api/gemini-ricerca.js": {
+      "maxDuration": 60
+    },
+    "api/webmail/emails.js": {
+      "maxDuration": 60
     }
   }
 }
