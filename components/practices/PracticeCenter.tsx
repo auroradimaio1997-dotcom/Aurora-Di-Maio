@@ -141,6 +141,7 @@ export default function PracticeCenter({
           (selected ? (
             <DocumentsPanel
               practiceId={selected.practice_id}
+              practiceType={selected.practice_type}
               collapsed={false}
               onToggleCollapsed={() => {}}
               pendingVisuraCategory={pendingVisuraCategory}
@@ -158,6 +159,7 @@ export default function PracticeCenter({
             <PracticeWorkspace practice={selected} onOpenVisuraPortal={handleOpenVisuraPortal} />
             <DocumentsPanel
               practiceId={selected.practice_id}
+              practiceType={selected.practice_type}
               collapsed={docsCollapsed}
               onToggleCollapsed={() => setDocsCollapsed((v) => !v)}
               pendingVisuraCategory={pendingVisuraCategory}

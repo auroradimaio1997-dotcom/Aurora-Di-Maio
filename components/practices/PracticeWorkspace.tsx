@@ -6,15 +6,13 @@ import ReactMarkdown from "react-markdown";
 import {
   createTemplate,
   deleteTemplate,
-  getDocumentSignedUrl,
-  getTemplateSignedUrl,
-  listDocuments,
   listMessages,
   listTemplates,
   postMessage,
   readFileAsBase64,
+  uploadDocument,
 } from "@/lib/practices/api";
-import type { Practice, PracticeDocument, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+import type { DocumentCategory, Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
 
 function SchemaSection({
   practiceType,
@@ -200,140 +198,81 @@ function SchemaSection({
 }
 
 /**
- * Chat scoped to a single practice. Real drafting assistant — routes
- * through the same Aurora coordinatore agent (n8n) used by the general
- * chat, optionally primed with the active schema/template the user
- * selected, so the draft it writes follows her own model. Every message
- * is persisted to the practice via Supabase.
+ * Compact collapsed-by-default upload shortcut for a single fixed
+ * document category — Dottrina e Giurisprudenza and Documenti delle
+ * parti both use this. Actually viewing what's been uploaded lives in
+ * the side documents panel, not here; this is acquisition only.
  */
-function DocumentGroup({
+function CategoryUploadSection({
   label,
-  items,
+  category,
+  practiceId,
 }: {
   label: string;
-  items: { key: string; name: string; onClick: () => void }[];
+  category: DocumentCategory;
+  practiceId: string;
 }) {
   const [open, setOpen] = useState(false);
-  return (
-    <div className="border-t first:border-t-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-3 py-2 text-left text-secondary hover:text-foreground"
-      >
-        <span>
-          {label} ({items.length})
-        </span>
-        {open ? <ChevronDown size={12} aria-hidden="true" /> : <ChevronRight size={12} aria-hidden="true" />}
-      </button>
-      {open && (
-        <div className="space-y-1 px-3 pb-2">
-          {items.length === 0 && <p className="text-secondary">Nessun documento.</p>}
-          {items.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={item.onClick}
-              className="flex w-full items-center gap-1.5 truncate rounded-md px-1.5 py-1 text-left text-foreground hover:bg-muted"
-            >
-              <FileText size={11} className="shrink-0" aria-hidden="true" />
-              {item.name}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error" | "not-configured">("idle");
 
-/**
- * A compact, click-to-open overview of everything acquired so far in
- * this practice, grouped the way a notary actually thinks about them —
- * not the full document manager (that's the side panel), just quick
- * visibility without leaving the chat.
- */
-function DocumentsOverview({ practice }: { practice: Practice }) {
-  const [open, setOpen] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [documents, setDocuments] = useState<PracticeDocument[]>([]);
-  const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
-
-  function handleToggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && !loaded) {
-      Promise.all([
-        listDocuments(practice.practice_id).then((r) => r.documents).catch(() => []),
-        listTemplates(practice.practice_type).then((r) => r.templates).catch(() => []),
-      ]).then(([docs, tpls]) => {
-        setDocuments(docs);
-        setTemplates(tpls);
-        setLoaded(true);
+  async function handleUpload() {
+    if (!file) return;
+    setStatus("uploading");
+    try {
+      const dataBase64 = await readFileAsBase64(file);
+      await uploadDocument(practiceId, {
+        name: file.name,
+        category,
+        mimeType: file.type || "application/octet-stream",
+        dataBase64,
       });
+      setFile(null);
+      setStatus("done");
+    } catch (err) {
+      if (err instanceof Error && err.name === "PracticeStorageNotConfiguredError") {
+        setStatus("not-configured");
+      } else {
+        setStatus("error");
+      }
     }
   }
-
-  async function openDocument(documentId: string) {
-    const { url } = await getDocumentSignedUrl(practice.practice_id, documentId);
-    window.open(url, "_blank", "noopener");
-  }
-
-  async function openTemplate(templateId: string) {
-    const { url } = await getTemplateSignedUrl(templateId);
-    window.open(url, "_blank", "noopener");
-  }
-
-  const visure = documents.filter(
-    (d) => d.category === "Visure ipocatastali" || d.category === "Visure camerali"
-  );
-  const dottrina = documents.filter((d) => d.category === "Dottrina e Giurisprudenza");
-  const partiIdentita = documents.filter((d) => d.category === "Documenti delle parti");
 
   return (
     <div className="mb-3 rounded-lg border">
       <button
         type="button"
-        onClick={handleToggle}
+        onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
       >
-        <span>Documenti caricati</span>
+        <span>{label}</span>
         {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
       </button>
 
       {open && (
-        <div className="text-xs">
-          <DocumentGroup
-            label="Schema di riferimento"
-            items={templates.map((t) => ({
-              key: t.template_id,
-              name: t.title,
-              onClick: () => openTemplate(t.template_id),
-            }))}
+        <div className="space-y-2 border-t p-3 text-xs">
+          <input
+            type="file"
+            accept="application/pdf,.docx,.doc,image/jpeg,image/png"
+            onChange={(e) => {
+              setFile(e.target.files?.[0] ?? null);
+              setStatus("idle");
+            }}
+            className="w-full text-foreground"
           />
-          <DocumentGroup
-            label="Dottrina e giurisprudenza di riferimento"
-            items={dottrina.map((d) => ({
-              key: d.document_id,
-              name: d.name,
-              onClick: () => openDocument(d.document_id),
-            }))}
-          />
-          <DocumentGroup
-            label="Visure caricate"
-            items={visure.map((d) => ({
-              key: d.document_id,
-              name: d.name,
-              onClick: () => openDocument(d.document_id),
-            }))}
-          />
-          <DocumentGroup
-            label="Documenti di identità delle parti"
-            items={partiIdentita.map((d) => ({
-              key: d.document_id,
-              name: d.name,
-              onClick: () => openDocument(d.document_id),
-            }))}
-          />
+          {status === "done" && <p className="text-blue-500">Caricato nella pratica.</p>}
+          {status === "not-configured" && (
+            <p className="text-secondary">Archiviazione permanente in preparazione.</p>
+          )}
+          {status === "error" && <p className="text-destructive">Errore nel caricamento.</p>}
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!file || status === "uploading"}
+            className="w-full rounded-full bg-blue-600 py-1.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {status === "uploading" ? "Caricamento…" : "Carica nella pratica"}
+          </button>
         </div>
       )}
     </div>
@@ -480,7 +419,17 @@ export default function PracticeWorkspace({
         </p>
       )}
 
-      <DocumentsOverview practice={practice} />
+      <CategoryUploadSection
+        label="Dottrina e giurisprudenza di riferimento"
+        category="Dottrina e Giurisprudenza"
+        practiceId={practice.practice_id}
+      />
+
+      <SchemaSection
+        practiceType={practice.practice_type}
+        activeTemplateId={activeTemplate?.template_id ?? null}
+        onActiveTemplateChange={setActiveTemplate}
+      />
 
       <VisureHub
         onOpenPortal={(category) => {
@@ -489,10 +438,10 @@ export default function PracticeWorkspace({
         }}
       />
 
-      <SchemaSection
-        practiceType={practice.practice_type}
-        activeTemplateId={activeTemplate?.template_id ?? null}
-        onActiveTemplateChange={setActiveTemplate}
+      <CategoryUploadSection
+        label="Documenti di identità delle parti"
+        category="Documenti delle parti"
+        practiceId={practice.practice_id}
       />
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">

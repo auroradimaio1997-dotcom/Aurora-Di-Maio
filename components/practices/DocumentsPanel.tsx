@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, Download, FileText, Trash2, Upload, X } from "lucide-react";
 import {
   deleteDocument,
+  deleteTemplate,
   getDocumentSignedUrl,
+  getTemplateSignedUrl,
   listDocuments,
+  listTemplates,
   readFileAsBase64,
   uploadDocument,
 } from "@/lib/practices/api";
-import { DOCUMENT_CATEGORIES, type DocumentCategory, type PracticeDocument } from "@/lib/practices/types";
+import { DOCUMENT_CATEGORIES, type DocumentCategory, type PracticeDocument, type PracticeTemplate } from "@/lib/practices/types";
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -102,30 +105,102 @@ function AcquireDocumentForm({
   );
 }
 
+type ListedItem = {
+  key: string;
+  name: string;
+  meta: string;
+  onOpen: () => void;
+  onDelete: () => void;
+};
+
+function DocumentGroup({ label, items, defaultOpen }: { label: string; items: ListedItem[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-1 rounded-md px-1 py-1.5 text-left text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <ChevronDown
+          size={12}
+          className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+          aria-hidden="true"
+        />
+        {label} ({items.length})
+      </button>
+      {open &&
+        (items.length === 0 ? (
+          <p className="ml-4 mb-2 text-xs text-secondary">Nessun documento.</p>
+        ) : (
+          items.map((item) => (
+            <div key={item.key} className="ml-4 mb-2 rounded-lg border p-2 text-xs">
+              <p className="truncate font-medium text-foreground">{item.name}</p>
+              <p className="mt-0.5 text-secondary">{item.meta}</p>
+              <div className="mt-1.5 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={item.onOpen}
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-muted hover:text-foreground"
+                >
+                  <Download size={12} aria-hidden="true" />
+                  Apri
+                </button>
+                <button
+                  type="button"
+                  onClick={item.onDelete}
+                  className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 size={12} aria-hidden="true" />
+                  Elimina
+                </button>
+              </div>
+            </div>
+          ))
+        ))}
+    </div>
+  );
+}
+
+const OTHER_CATEGORIES: DocumentCategory[] = [
+  "Titoli di provenienza",
+  "Urbanistica",
+  "Catasto",
+  "Fiscalità",
+  "Bozze dell'atto",
+  "Allegati",
+  "Altro",
+];
+
 export default function DocumentsPanel({
   practiceId,
+  practiceType,
   collapsed,
   onToggleCollapsed,
   pendingVisuraCategory,
   onClearPendingVisura,
 }: {
   practiceId: string;
+  practiceType: string;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   pendingVisuraCategory?: DocumentCategory | null;
   onClearPendingVisura?: () => void;
 }) {
   const [documents, setDocuments] = useState<PracticeDocument[]>([]);
+  const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
   const [notConfigured, setNotConfigured] = useState(false);
   const [showAcquire, setShowAcquire] = useState(false);
   const [acquireCategory, setAcquireCategory] = useState<DocumentCategory | undefined>(undefined);
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
-    listDocuments(practiceId)
-      .then(({ documents }) => {
-        if (!cancelled) setDocuments(documents);
+    Promise.all([listDocuments(practiceId), listTemplates(practiceType)])
+      .then(([docsRes, tplRes]) => {
+        if (!cancelled) {
+          setDocuments(docsRes.documents);
+          setTemplates(tplRes.templates);
+        }
       })
       .catch((err) => {
         if (!cancelled && err?.name === "PracticeStorageNotConfiguredError") {
@@ -135,23 +210,46 @@ export default function DocumentsPanel({
     return () => {
       cancelled = true;
     };
-  }, [practiceId]);
+  }, [practiceId, practiceType]);
 
-  async function handleOpen(doc: PracticeDocument) {
+  async function handleOpenDocument(doc: PracticeDocument) {
     const { url } = await getDocumentSignedUrl(practiceId, doc.document_id);
     window.open(url, "_blank", "noopener");
   }
 
-  async function handleDelete(doc: PracticeDocument) {
+  async function handleDeleteDocument(doc: PracticeDocument) {
     if (!window.confirm(`Eliminare "${doc.name}"? L'operazione non è reversibile.`)) return;
     await deleteDocument(practiceId, doc.document_id);
     setDocuments((prev) => prev.filter((d) => d.document_id !== doc.document_id));
   }
 
-  const byCategory = documents.reduce<Record<string, PracticeDocument[]>>((acc, doc) => {
-    (acc[doc.category] ??= []).push(doc);
-    return acc;
-  }, {});
+  async function handleOpenTemplate(tpl: PracticeTemplate) {
+    const { url } = await getTemplateSignedUrl(tpl.template_id);
+    window.open(url, "_blank", "noopener");
+  }
+
+  async function handleDeleteTemplate(tpl: PracticeTemplate) {
+    if (!window.confirm(`Eliminare lo schema "${tpl.title}"?`)) return;
+    await deleteTemplate(tpl.template_id);
+    setTemplates((prev) => prev.filter((t) => t.template_id !== tpl.template_id));
+  }
+
+  function docToItem(doc: PracticeDocument): ListedItem {
+    return {
+      key: doc.document_id,
+      name: doc.name,
+      meta: `${formatSize(doc.size_bytes)} · ${new Date(doc.uploaded_at).toLocaleDateString("it-IT")}`,
+      onOpen: () => handleOpenDocument(doc),
+      onDelete: () => handleDeleteDocument(doc),
+    };
+  }
+
+  const visure = documents.filter(
+    (d) => d.category === "Visure ipocatastali" || d.category === "Visure camerali"
+  );
+  const dottrina = documents.filter((d) => d.category === "Dottrina e Giurisprudenza");
+  const partiIdentita = documents.filter((d) => d.category === "Documenti delle parti");
+  const altri = documents.filter((d) => OTHER_CATEGORIES.includes(d.category));
 
   if (collapsed) {
     return (
@@ -232,57 +330,23 @@ export default function DocumentsPanel({
       )}
 
       <div className="min-h-0 flex-1 space-y-1 overflow-y-auto">
-        {Object.keys(byCategory).length === 0 && (
-          <p className="text-xs text-secondary">Nessun documento ancora caricato.</p>
-        )}
-        {Object.entries(byCategory).map(([category, docs]) => {
-          const open = openCategories[category] ?? true;
-          return (
-            <div key={category}>
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenCategories((prev) => ({ ...prev, [category]: !open }))
-                }
-                className="flex w-full items-center gap-1 rounded-md px-1 py-1.5 text-left text-xs font-semibold text-secondary hover:text-foreground"
-              >
-                <ChevronDown
-                  size={12}
-                  className={`transition-transform ${open ? "" : "-rotate-90"}`}
-                  aria-hidden="true"
-                />
-                {category} ({docs.length})
-              </button>
-              {open &&
-                docs.map((doc) => (
-                  <div key={doc.document_id} className="ml-4 mb-2 rounded-lg border p-2 text-xs">
-                    <p className="truncate font-medium text-foreground">{doc.name}</p>
-                    <p className="mt-0.5 text-secondary">
-                      {formatSize(doc.size_bytes)} · {new Date(doc.uploaded_at).toLocaleDateString("it-IT")}
-                    </p>
-                    <div className="mt-1.5 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpen(doc)}
-                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-muted hover:text-foreground"
-                      >
-                        <Download size={12} aria-hidden="true" />
-                        Apri
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(doc)}
-                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-secondary hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 size={12} aria-hidden="true" />
-                        Elimina
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          );
-        })}
+        <DocumentGroup
+          label="Schema di riferimento"
+          items={templates.map((t) => ({
+            key: t.template_id,
+            name: t.title,
+            meta: new Date(t.created_at).toLocaleDateString("it-IT"),
+            onOpen: () => handleOpenTemplate(t),
+            onDelete: () => handleDeleteTemplate(t),
+          }))}
+        />
+        <DocumentGroup
+          label="Dottrina e giurisprudenza di riferimento"
+          items={dottrina.map(docToItem)}
+        />
+        <DocumentGroup label="Visure caricate" items={visure.map(docToItem)} />
+        <DocumentGroup label="Documenti di identità delle parti" items={partiIdentita.map(docToItem)} />
+        <DocumentGroup label="Altri documenti" items={altri.map(docToItem)} />
       </div>
     </div>
   );
