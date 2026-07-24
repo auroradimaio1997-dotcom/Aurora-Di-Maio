@@ -68,18 +68,54 @@ function renderPlaceholders(line: string, keyPrefix: string) {
 
 /** Renders act text with titles centered and body paragraphs justified
  * with margins, as in a real notarial deed, placeholders highlighted. */
+type ActBlock = { type: "title"; text: string } | { type: "para"; lines: string[] };
+
+/** Groups lines into title lines and paragraph blocks (consecutive body
+ * lines merged into one block) — text-align:justify only stretches lines
+ * that aren't the last one in their block, so single-line paragraphs
+ * never actually looked justified until they were merged like this. */
+function groupActBlocks(text: string): ActBlock[] {
+  const blocks: ActBlock[] = [];
+  let buffer: string[] = [];
+
+  function flush() {
+    if (buffer.length > 0) {
+      blocks.push({ type: "para", lines: buffer });
+      buffer = [];
+    }
+  }
+
+  for (const line of text.split("\n")) {
+    if (isTitleLine(line)) {
+      flush();
+      blocks.push({ type: "title", text: line.trim() });
+    } else if (!line.trim()) {
+      flush();
+    } else {
+      buffer.push(line);
+    }
+  }
+  flush();
+  return blocks;
+}
+
 function HighlightedActText({ text }: { text: string }) {
-  const lines = text.split("\n");
+  const blocks = groupActBlocks(text);
   return (
     <div className="mx-auto max-w-[70ch] px-6">
-      {lines.map((line, i) =>
-        isTitleLine(line) ? (
-          <p key={i} className="my-2 text-center font-bold">
-            {renderPlaceholders(line, `t${i}`)}
+      {blocks.map((block, i) =>
+        block.type === "title" ? (
+          <p key={i} className="my-3 text-center font-bold">
+            {renderPlaceholders(block.text, `t${i}`)}
           </p>
         ) : (
-          <p key={i} className="my-1 text-justify">
-            {line.trim() ? renderPlaceholders(line, `b${i}`) : " "}
+          <p key={i} className="my-2 text-justify">
+            {block.lines.map((line, j) => (
+              <span key={j}>
+                {renderPlaceholders(line, `b${i}-${j}`)}
+                {j < block.lines.length - 1 && <br />}
+              </span>
+            ))}
           </p>
         )
       )}
@@ -100,6 +136,16 @@ function stripMarkdown(text: string) {
     .replace(/\[(.*?)\]\(.*?\)/g, "$1");
 }
 
+const NON_ACT_TRIGGERS = ["Verifica tassazione", "Revisiona la tua ultima bozza modificata", "Revisione bozza:"];
+
+/** Only replies to an actual act-drafting request get the notarial-deed
+ * treatment (Courier New, centered titles, justified body) — tax checks,
+ * draft reviews and other AI answers use the normal chat font instead. */
+function isActDraftReply(precedingUserText: string | undefined) {
+  if (!precedingUserText) return true;
+  return !NON_ACT_TRIGGERS.some((trigger) => precedingUserText.startsWith(trigger));
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -116,17 +162,19 @@ function downloadBlob(blob: Blob, filename: string) {
 async function downloadWord(text: string, filename: string) {
   const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import("docx");
 
-  const paragraphs = text.split("\n").map((line) => {
-    if (isTitleLine(line)) {
+  const paragraphs = groupActBlocks(text).map((block) => {
+    if (block.type === "title") {
       return new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: line.trim(), bold: true, font: "Courier New", size: 20 })],
+        children: [new TextRun({ text: block.text, bold: true, font: "Courier New", size: 20 })],
       });
     }
-    return new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
-      children: [new TextRun({ text: line, font: "Courier New", size: 20 })],
+    const children: InstanceType<typeof TextRun>[] = [];
+    block.lines.forEach((line, i) => {
+      if (i > 0) children.push(new TextRun({ text: "", break: 1 }));
+      children.push(new TextRun({ text: line, font: "Courier New", size: 20 }));
     });
+    return new Paragraph({ alignment: AlignmentType.JUSTIFIED, children });
   });
 
   const doc = new Document({
@@ -155,25 +203,21 @@ async function downloadPdf(text: string, filename: string) {
     }
   }
 
-  for (const rawLine of text.split("\n")) {
-    if (isTitleLine(rawLine)) {
+  for (const block of groupActBlocks(text)) {
+    if (block.type === "title") {
       ensureSpace(1);
-      doc.text(rawLine.trim(), pageWidth / 2, y, { align: "center" });
+      doc.text(block.text, pageWidth / 2, y, { align: "center" });
       y += lineHeight;
       continue;
     }
-    if (!rawLine.trim()) {
-      ensureSpace(1);
-      y += lineHeight;
-      continue;
-    }
-    const wrapped = doc.splitTextToSize(rawLine, maxWidth) as string[];
-    ensureSpace(wrapped.length);
+    const wrapped = block.lines.flatMap((line) => (doc.splitTextToSize(line, maxWidth) as string[]));
+    ensureSpace(wrapped.length + 1);
     wrapped.forEach((wrappedLine, i) => {
       const isLastOfParagraph = i === wrapped.length - 1;
       doc.text(wrappedLine, margin, y, isLastOfParagraph ? undefined : { align: "justify", maxWidth });
       y += lineHeight;
     });
+    y += lineHeight * 0.3;
   }
 
   downloadBlob(doc.output("blob"), `${filename}.pdf`);
@@ -1069,14 +1113,14 @@ export default function PracticeWorkspace({
             bozza lo seguirà.
           </p>
         )}
-        {messages.map((m) =>
+        {messages.map((m, i) =>
           m.role === "user" ? (
             <div key={m.message_id} className="flex justify-end">
               <div className="max-w-[85%] rounded-2xl bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
                 {m.text}
               </div>
             </div>
-          ) : (
+          ) : isActDraftReply(messages[i - 1]?.text) ? (
             <ActMessage
               key={m.message_id}
               message={m}
@@ -1085,6 +1129,13 @@ export default function PracticeWorkspace({
                 setMessages((prev) => prev.map((msg) => (msg.message_id === updated.message_id ? updated : msg)))
               }
             />
+          ) : (
+            <div
+              key={m.message_id}
+              className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-muted px-4 py-2.5 text-sm text-foreground shadow-sm"
+            >
+              {stripMarkdown(m.text)}
+            </div>
           )
         )}
         {status === "loading" && (
@@ -1172,6 +1223,14 @@ export default function PracticeWorkspace({
           }}
         />
 
+        <ClausoleAggiuntiveSection
+          practiceId={practice.practice_id}
+          value={clausoleAggiuntive}
+          onChange={setClausoleAggiuntive}
+          savedValue={savedClausoleAggiuntive}
+          onSaved={setSavedClausoleAggiuntive}
+        />
+
         <SchemaSection
           practiceType={practice.practice_type}
           activeTemplateId={activeTemplate?.template_id ?? null}
@@ -1238,14 +1297,6 @@ export default function PracticeWorkspace({
             />
           </>
         )}
-
-            <ClausoleAggiuntiveSection
-              practiceId={practice.practice_id}
-              value={clausoleAggiuntive}
-              onChange={setClausoleAggiuntive}
-              savedValue={savedClausoleAggiuntive}
-              onSaved={setSavedClausoleAggiuntive}
-            />
           </div>
         </div>
       ) : (
