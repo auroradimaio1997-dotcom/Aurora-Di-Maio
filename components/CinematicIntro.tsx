@@ -78,6 +78,24 @@ export default function CinematicIntro() {
     <div className="relative flex min-h-[70vh] flex-col items-center justify-center gap-10 text-center">
       <AuroraCharacter state={scene.state} size={200} />
 
+      <div className="h-14">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={scene.key}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center gap-1"
+          >
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+              {scene.label}
+            </span>
+            <p className="text-sm text-secondary">{scene.lines[0]}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
       <div>
         <h1 className="font-serif text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
           <span className="text-gold">AI</span> AURORA STUDIO
@@ -107,24 +125,6 @@ export default function CinematicIntro() {
             Aree di Ricerca e Lavoro
           </motion.span>
         </Link>
-      </div>
-
-      <div className="h-14">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={scene.key}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center gap-1"
-          >
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
-              {scene.label}
-            </span>
-            <p className="text-sm text-secondary">{scene.lines[0]}</p>
-          </motion.div>
-        </AnimatePresence>
       </div>
     </div>
   );
