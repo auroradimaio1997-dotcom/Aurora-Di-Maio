@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import Link from "next/link";
 import {
   ChevronDown,
   ChevronRight,
@@ -258,12 +259,14 @@ function CategoryUploadSection({
   practiceId,
   portals,
   helpText,
+  helpLink,
 }: {
   label: string;
   category: DocumentCategory;
   practiceId: string;
   portals?: { url: string; label: string }[];
   helpText?: string;
+  helpLink?: { href: string; label: string };
 }) {
   const [open, setOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -325,7 +328,17 @@ function CategoryUploadSection({
       </div>
 
       {showHelp && helpText && (
-        <div className="mx-3 mb-2 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">{helpText}</div>
+        <div className="mx-3 mb-2 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">
+          <p>{helpText}</p>
+          {helpLink && (
+            <Link
+              href={helpLink.href}
+              className="mt-1.5 inline-block font-medium text-blue-500 hover:underline"
+            >
+              {helpLink.label}
+            </Link>
+          )}
+        </div>
       )}
 
       {open && (
@@ -607,6 +620,10 @@ export default function PracticeWorkspace({
             { url: "https://cnnnotizie.notariato.it", label: "Banche dati notarili" },
           ]}
           helpText="Carica o cerca tu manualmente dottrina e giurisprudenza che ritieni l'AI non abbia trovato."
+          helpLink={{
+            href: "/assistente-notarile/ricerca-scientifica",
+            label: "Vuoi approfondire con l'AI? Vai a Fai una ricerca scientifica approfondita →",
+          }}
         />
 
         <SchemaSection
