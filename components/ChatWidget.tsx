@@ -139,7 +139,11 @@ export default function ChatWidget() {
     <div className="mt-10">
       <div
         ref={scrollRef}
-        className="h-96 space-y-5 overflow-y-auto py-2"
+        className={
+          messages.length === 0
+            ? "flex min-h-[120px] items-center py-2"
+            : "max-h-[60vh] space-y-5 overflow-y-auto py-2"
+        }
         aria-live="polite"
       >
         {messages.length === 0 && (

@@ -47,27 +47,29 @@ export default function ChatHome() {
             <Link
               key={action.label}
               href={action.href}
-              className="group flex items-center gap-4 rounded-xl border bg-background p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
+              className="group flex items-center gap-3 rounded-xl border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg transition-colors group-hover:bg-gold/10"
+                aria-hidden="true"
+              >
                 {action.emoji}
               </span>
-              <span className="font-serif text-base font-semibold text-foreground group-hover:text-foreground">
-                {action.label}
-              </span>
+              <span className="text-sm font-medium text-foreground">{action.label}</span>
             </Link>
           ) : (
             <button
               key={action.label}
               type="button"
-              className="flex items-center gap-4 rounded-xl border bg-background p-5 text-left opacity-60"
+              className="flex items-center gap-3 rounded-xl border bg-background p-4 text-left opacity-50"
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg"
+                aria-hidden="true"
+              >
                 {action.emoji}
               </span>
-              <span className="font-serif text-base font-semibold text-foreground">
-                {action.label}
-              </span>
+              <span className="text-sm font-medium text-foreground">{action.label}</span>
             </button>
           )
         )}
@@ -75,14 +77,15 @@ export default function ChatHome() {
         <button
           type="button"
           onClick={() => setChatKey((k) => k + 1)}
-          className="group flex items-center gap-4 rounded-xl border bg-background p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
+          className="group flex items-center gap-3 rounded-xl border bg-background p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
         >
-          <span className="text-2xl" aria-hidden="true">
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg transition-colors group-hover:bg-gold/10"
+            aria-hidden="true"
+          >
             💬
           </span>
-          <span className="font-serif text-base font-semibold text-foreground group-hover:text-foreground">
-            Nuova conversazione
-          </span>
+          <span className="text-sm font-medium text-foreground">Nuova conversazione</span>
         </button>
       </div>
 
