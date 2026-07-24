@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
       return;
     }
     res.status(200).json({ text });
-  } catch (err) {
-    res.status(500).json({ error: `Errore nell'estrazione: ${err.message}` });
+  } catch {
+    res.status(500).json({ error: "Errore imprevisto nell'estrazione del testo. Riprova." });
   }
 };
