@@ -113,23 +113,27 @@ function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+async function downloadWord(text: string, filename: string) {
+  const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import("docx");
 
-function downloadWord(text: string, filename: string) {
-  const paragraphs = text
-    .split("\n")
-    .map((line) => {
-      if (isTitleLine(line)) {
-        return `<p style="text-align:center;font-weight:bold;">${escapeHtml(line.trim())}</p>`;
-      }
-      return `<p style="text-align:justify;">${escapeHtml(line) || "&nbsp;"}</p>`;
-    })
-    .join("");
-  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body style="font-family:'Courier New',monospace;font-size:10pt;margin:2.5cm;">${paragraphs}</body></html>`;
-  const blob = new Blob(["﻿", doc], { type: "application/msword" });
-  downloadBlob(blob, `${filename}.doc`);
+  const paragraphs = text.split("\n").map((line) => {
+    if (isTitleLine(line)) {
+      return new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: line.trim(), bold: true, font: "Courier New", size: 20 })],
+      });
+    }
+    return new Paragraph({
+      alignment: AlignmentType.JUSTIFIED,
+      children: [new TextRun({ text: line, font: "Courier New", size: 20 })],
+    });
+  });
+
+  const doc = new Document({
+    sections: [{ properties: {}, children: paragraphs }],
+  });
+  const blob = await Packer.toBlob(doc);
+  downloadBlob(blob, `${filename}.docx`);
 }
 
 async function downloadPdf(text: string, filename: string) {

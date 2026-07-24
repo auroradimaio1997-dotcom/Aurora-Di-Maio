@@ -32,11 +32,20 @@ function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function downloadWord(text: string, index: number) {
-  const plain = stripMarkdown(text).replace(/\n/g, "<br/>");
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><p>${plain}</p></body></html>`;
-  const blob = new Blob(["﻿", html], { type: "application/msword" });
-  downloadBlob(blob, `ricerca-${index + 1}.doc`);
+async function downloadWord(text: string, index: number) {
+  const { Document, Packer, Paragraph, TextRun } = await import("docx");
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: stripMarkdown(text)
+          .split("\n")
+          .map((line) => new Paragraph({ children: [new TextRun({ text: line })] })),
+      },
+    ],
+  });
+  const blob = await Packer.toBlob(doc);
+  downloadBlob(blob, `ricerca-${index + 1}.docx`);
 }
 
 async function downloadPdf(text: string, index: number) {

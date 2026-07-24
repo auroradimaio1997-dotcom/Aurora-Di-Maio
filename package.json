@@ -16,6 +16,7 @@
     "@remotion/player": "^4.0.497",
     "@supabase/supabase-js": "^2.110.8",
     "@types/three": "^0.185.1",
+    "docx": "^9.7.1",
     "framer-motion": "^12.42.2",
     "jspdf": "^4.2.1",
     "lucide-react": "0.469.0",
