@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ChevronDown, ChevronRight, FileText, Loader2, Plus, Send, Trash2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import {
   createTemplate,
   deleteTemplate,
@@ -13,6 +12,19 @@ import {
   uploadDocument,
 } from "@/lib/practices/api";
 import type { DocumentCategory, Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+
+function stripMarkdown(text: string) {
+  return text
+    .replace(/^\s*#{1,6}\s*/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`{1,3}([^`]*)`{1,3}/g, "$1")
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/^\s*>\s?/gm, "")
+    .replace(/^\s*([-*_])\s*\1\s*\1[-*_\s]*$/gm, "")
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1");
+}
 
 function SchemaSection({
   practiceType,
@@ -505,10 +517,12 @@ export default function PracticeWorkspace({
               </div>
             </div>
           ) : (
-            <div key={m.message_id} className="max-w-[85ch] select-text text-[15px] leading-7 text-foreground">
-              <div className="space-y-2 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
-                <ReactMarkdown>{m.text}</ReactMarkdown>
-              </div>
+            <div
+              key={m.message_id}
+              className="max-w-[85ch] select-text whitespace-pre-wrap text-foreground"
+              style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
+            >
+              {stripMarkdown(m.text)}
             </div>
           )
         )}
