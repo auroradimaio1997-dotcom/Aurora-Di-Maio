@@ -1,5 +1,5 @@
-const { getSupabaseServerClient } = require("../../lib/practices/supabaseServer");
-const { notConfiguredResponse, setCors, STATUSES } = require("../../lib/practices/shared");
+const { getSupabaseServerClient } = require("../../../lib/practices/supabaseServer");
+const { notConfiguredResponse, setCors, STATUSES } = require("../../../lib/practices/shared");
 
 module.exports = async function handler(req, res) {
   setCors(res);

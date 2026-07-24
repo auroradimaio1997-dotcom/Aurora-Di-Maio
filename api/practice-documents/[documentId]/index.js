@@ -1,5 +1,5 @@
-const { getSupabaseServerClient } = require("../../lib/practices/supabaseServer");
-const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../../lib/practices/shared");
+const { getSupabaseServerClient } = require("../../../lib/practices/supabaseServer");
+const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../../../lib/practices/shared");
 
 const SIGNED_URL_TTL_SECONDS = 300; // 5 minutes — never a permanent public URL
 
