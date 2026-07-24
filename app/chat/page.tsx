@@ -7,8 +7,10 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 md:py-14">
-      <ChatHome />
+    <div className="min-h-[calc(100dvh-65px)] bg-white">
+      <div className="mx-auto max-w-3xl px-6 py-10 md:py-14">
+        <ChatHome />
+      </div>
     </div>
   );
 }

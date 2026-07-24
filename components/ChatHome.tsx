@@ -16,13 +16,13 @@ export default function ChatHome() {
   return (
     <div className="flex h-[calc(100dvh-160px)] min-h-[520px] flex-col">
       <motion.p
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="text-center font-serif text-lg text-secondary md:text-xl"
+        initial={{ opacity: 0, y: 10, letterSpacing: "0.02em" }}
+        animate={{ opacity: 1, y: 0, letterSpacing: "0em" }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className="text-shimmer bg-gradient-to-r from-blue-600 via-slate-500 to-blue-600 bg-clip-text text-center font-serif text-xl italic tracking-wide text-transparent md:text-2xl"
       >
         Fammi una domanda veloce o vai nell&apos;
-        <span className="text-gold">Area di Ricerca e Lavoro</span> di AI
+        <span className="not-italic">Area di Ricerca e Lavoro</span> di AI
         Aurora Studio.
       </motion.p>
 

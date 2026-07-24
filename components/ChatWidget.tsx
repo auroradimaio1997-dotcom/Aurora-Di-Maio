@@ -1,13 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Check, Copy, FileDown, FileText, Loader2, Send } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { motion } from "framer-motion";
+import { Check, Copy, FileDown, FileText, Loader2, Paperclip, Send, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+
+type Attachment = {
+  name: string;
+  isImage: boolean;
+  dataUrl: string;
+};
 
 type Message = {
   role: "user" | "aurora";
   text: string;
+  attachment?: Attachment;
 };
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 function stripMarkdown(text: string) {
   return text
@@ -44,6 +61,21 @@ async function downloadPdf(text: string, index: number) {
   doc.save(`risposta-aurora-${index + 1}.pdf`);
 }
 
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="h-2 w-2 rounded-full bg-blue-600"
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function MessageActions({ text, index }: { text: string; index: number }) {
   const [copied, setCopied] = useState(false);
 
@@ -54,11 +86,11 @@ function MessageActions({ text, index }: { text: string; index: number }) {
   }
 
   return (
-    <div className="mt-2 flex items-center gap-1 text-secondary">
+    <div className="mt-2 flex items-center gap-1 text-slate-400">
       <button
         type="button"
         onClick={handleCopy}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
       >
         {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
         {copied ? "Copiato" : "Copia"}
@@ -66,7 +98,7 @@ function MessageActions({ text, index }: { text: string; index: number }) {
       <button
         type="button"
         onClick={() => downloadWord(text, index)}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
       >
         <FileText size={13} aria-hidden="true" />
         Scarica Word
@@ -74,7 +106,7 @@ function MessageActions({ text, index }: { text: string; index: number }) {
       <button
         type="button"
         onClick={() => downloadPdf(text, index)}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
       >
         <FileDown size={13} aria-hidden="true" />
         Scarica PDF
@@ -85,9 +117,9 @@ function MessageActions({ text, index }: { text: string; index: number }) {
 
 /**
  * The live chat with the Aurora coordinatore agent — proxied through
- * api/agente-coordinatore.js. ChatGPT-style layout: assistant replies are
- * continuous, selectable text (no boxed bubble); only the user's own
- * messages get a subtle pill for turn-taking clarity.
+ * api/agente-coordinatore.js. ChatGPT-style layout on a white surface:
+ * both sides render as raised cards (vignette), blue for the user, white
+ * with a soft border for the assistant.
  */
 export default function ChatWidget({
   onNewConversation,
@@ -96,9 +128,19 @@ export default function ChatWidget({
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    setAttachment({ name: file.name, isImage: file.type.startsWith("image/"), dataUrl });
+  }
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -109,18 +151,27 @@ export default function ChatWidget({
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || status === "loading") return;
+    if ((!text && !attachment) || status === "loading") return;
 
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    const currentAttachment = attachment;
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text, attachment: currentAttachment ?? undefined },
+    ]);
     setInput("");
+    setAttachment(null);
     setStatus("loading");
     setErrorMsg("");
+
+    const messageForAgent = currentAttachment
+      ? `${text}\n\n[File allegato: ${currentAttachment.name}]`.trim()
+      : text;
 
     try {
       const res = await fetch("/api/agente-coordinatore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: messageForAgent }),
       });
       const data = await res.json();
 
@@ -163,7 +214,7 @@ export default function ChatWidget({
         aria-live="polite"
       >
         {messages.length === 0 && (
-          <p className="text-sm text-secondary">
+          <p className="text-sm text-slate-400">
             Scrivi un messaggio per iniziare a parlare con l&apos;assistente.
           </p>
         )}
@@ -171,13 +222,33 @@ export default function ChatWidget({
         {messages.map((m, i) =>
           m.role === "user" ? (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2.5 text-sm leading-relaxed text-foreground">
+              <div className="max-w-[85%] rounded-2xl bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-md">
+                {m.attachment && (
+                  <div className="mb-2">
+                    {m.attachment.isImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.attachment.dataUrl}
+                        alt={m.attachment.name}
+                        className="max-h-40 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-xs">
+                        <FileText size={14} aria-hidden="true" />
+                        {m.attachment.name}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {m.text}
               </div>
             </div>
           ) : (
-            <div key={i} className="max-w-[85ch] select-text text-[15px] leading-7 text-foreground">
-              <div className="space-y-2 [&_a]:text-gold [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
+            <div
+              key={i}
+              className="max-w-[85%] select-text rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[15px] leading-7 text-slate-800 shadow-sm"
+            >
+              <div className="space-y-2 [&_a]:text-blue-600 [&_a]:underline [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
                 <ReactMarkdown>{m.text}</ReactMarkdown>
               </div>
               <MessageActions text={m.text} index={i} />
@@ -185,43 +256,72 @@ export default function ChatWidget({
           )
         )}
 
-        {status === "loading" && (
-          <div className="flex items-center gap-2 text-sm text-secondary">
-            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            Sto pensando…
-          </div>
-        )}
+        {status === "loading" && <TypingIndicator />}
 
         {status === "error" && (
-          <p className="text-sm text-destructive">{errorMsg}</p>
+          <p className="text-sm text-red-600">{errorMsg}</p>
         )}
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="mt-4 flex items-center gap-2 rounded-full border bg-background px-2 py-2 shadow-sm"
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Scrivi un messaggio…"
-          maxLength={2000}
-          disabled={status === "loading"}
-          className="flex-1 bg-transparent px-3 py-1.5 text-sm text-foreground placeholder:text-secondary focus:outline-none disabled:opacity-60"
-        />
-        <button
-          type="submit"
-          disabled={status === "loading" || !input.trim()}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-navy transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label="Invia messaggio"
-        >
-          {status === "loading" ? (
-            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-          ) : (
-            <Send size={16} aria-hidden="true" />
-          )}
-        </button>
+      <form onSubmit={handleSubmit} className="mt-4">
+        {attachment && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            {attachment.isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={attachment.dataUrl} alt={attachment.name} className="h-8 w-8 rounded object-cover" />
+            ) : (
+              <FileText size={14} aria-hidden="true" />
+            )}
+            <span className="flex-1 truncate">{attachment.name}</span>
+            <button
+              type="button"
+              onClick={() => setAttachment(null)}
+              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+              aria-label="Rimuovi allegato"
+            >
+              <X size={13} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-2 shadow-sm">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.doc,.docx,.txt"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Allega file o foto"
+          >
+            <Paperclip size={17} aria-hidden="true" />
+          </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Scrivi un messaggio…"
+            maxLength={2000}
+            disabled={status === "loading"}
+            className="flex-1 bg-transparent px-1 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={status === "loading" || (!input.trim() && !attachment)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Invia messaggio"
+          >
+            {status === "loading" ? (
+              <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Send size={16} aria-hidden="true" />
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
