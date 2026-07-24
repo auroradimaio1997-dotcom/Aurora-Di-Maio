@@ -23,6 +23,7 @@ export type DocumentCategory =
   | "Urbanistica"
   | "Catasto"
   | "Fiscalità"
+  | "Dottrina e Giurisprudenza"
   | "Bozze dell'atto"
   | "Allegati"
   | "Altro";
@@ -35,6 +36,7 @@ export const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   "Urbanistica",
   "Catasto",
   "Fiscalità",
+  "Dottrina e Giurisprudenza",
   "Bozze dell'atto",
   "Allegati",
   "Altro",

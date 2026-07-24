@@ -6,12 +6,15 @@ import ReactMarkdown from "react-markdown";
 import {
   createTemplate,
   deleteTemplate,
+  getDocumentSignedUrl,
+  getTemplateSignedUrl,
+  listDocuments,
   listMessages,
   listTemplates,
   postMessage,
   readFileAsBase64,
 } from "@/lib/practices/api";
-import type { Practice, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
+import type { Practice, PracticeDocument, PracticeMessage, PracticeTemplate } from "@/lib/practices/types";
 
 function SchemaSection({
   practiceType,
@@ -203,6 +206,140 @@ function SchemaSection({
  * selected, so the draft it writes follows her own model. Every message
  * is persisted to the practice via Supabase.
  */
+function DocumentGroup({
+  label,
+  items,
+}: {
+  label: string;
+  items: { key: string; name: string; onClick: () => void }[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-t first:border-t-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-left text-secondary hover:text-foreground"
+      >
+        <span>
+          {label} ({items.length})
+        </span>
+        {open ? <ChevronDown size={12} aria-hidden="true" /> : <ChevronRight size={12} aria-hidden="true" />}
+      </button>
+      {open && (
+        <div className="space-y-1 px-3 pb-2">
+          {items.length === 0 && <p className="text-secondary">Nessun documento.</p>}
+          {items.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={item.onClick}
+              className="flex w-full items-center gap-1.5 truncate rounded-md px-1.5 py-1 text-left text-foreground hover:bg-muted"
+            >
+              <FileText size={11} className="shrink-0" aria-hidden="true" />
+              {item.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A compact, click-to-open overview of everything acquired so far in
+ * this practice, grouped the way a notary actually thinks about them —
+ * not the full document manager (that's the side panel), just quick
+ * visibility without leaving the chat.
+ */
+function DocumentsOverview({ practice }: { practice: Practice }) {
+  const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [documents, setDocuments] = useState<PracticeDocument[]>([]);
+  const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
+
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && !loaded) {
+      Promise.all([
+        listDocuments(practice.practice_id).then((r) => r.documents).catch(() => []),
+        listTemplates(practice.practice_type).then((r) => r.templates).catch(() => []),
+      ]).then(([docs, tpls]) => {
+        setDocuments(docs);
+        setTemplates(tpls);
+        setLoaded(true);
+      });
+    }
+  }
+
+  async function openDocument(documentId: string) {
+    const { url } = await getDocumentSignedUrl(practice.practice_id, documentId);
+    window.open(url, "_blank", "noopener");
+  }
+
+  async function openTemplate(templateId: string) {
+    const { url } = await getTemplateSignedUrl(templateId);
+    window.open(url, "_blank", "noopener");
+  }
+
+  const visure = documents.filter(
+    (d) => d.category === "Visure ipocatastali" || d.category === "Visure camerali"
+  );
+  const dottrina = documents.filter((d) => d.category === "Dottrina e Giurisprudenza");
+  const partiIdentita = documents.filter((d) => d.category === "Documenti delle parti");
+
+  return (
+    <div className="mb-3 rounded-lg border">
+      <button
+        type="button"
+        onClick={handleToggle}
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <span>Documenti caricati</span>
+        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </button>
+
+      {open && (
+        <div className="text-xs">
+          <DocumentGroup
+            label="Schema di riferimento"
+            items={templates.map((t) => ({
+              key: t.template_id,
+              name: t.title,
+              onClick: () => openTemplate(t.template_id),
+            }))}
+          />
+          <DocumentGroup
+            label="Dottrina e giurisprudenza di riferimento"
+            items={dottrina.map((d) => ({
+              key: d.document_id,
+              name: d.name,
+              onClick: () => openDocument(d.document_id),
+            }))}
+          />
+          <DocumentGroup
+            label="Visure caricate"
+            items={visure.map((d) => ({
+              key: d.document_id,
+              name: d.name,
+              onClick: () => openDocument(d.document_id),
+            }))}
+          />
+          <DocumentGroup
+            label="Documenti di identità delle parti"
+            items={partiIdentita.map((d) => ({
+              key: d.document_id,
+              name: d.name,
+              onClick: () => openDocument(d.document_id),
+            }))}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const SMARTACCESS_URL = "https://webrun.notariato.it/smartaccess/";
 
 function VisureHub({ onOpenPortal }: { onOpenPortal: (category: "Visure ipocatastali" | "Visure camerali") => void }) {
@@ -342,6 +479,8 @@ export default function PracticeWorkspace({
           collegato sul server.
         </p>
       )}
+
+      <DocumentsOverview practice={practice} />
 
       <VisureHub
         onOpenPortal={(category) => {

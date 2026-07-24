@@ -57,7 +57,7 @@ function AcquireDocumentForm({
   }
 
   return (
-    <div className="mb-3 rounded-lg border bg-muted p-3 text-xs">
+    <div className="mb-3 rounded-lg border bg-muted/60 p-2.5 text-xs">
       <div className="mb-2 flex items-center justify-between">
         <span className="font-medium text-foreground">Acquisisci documento</span>
         <button type="button" onClick={onClose} className="text-secondary hover:text-foreground">
@@ -96,7 +96,7 @@ function AcquireDocumentForm({
         disabled={!file || status === "uploading"}
         className="w-full rounded-full bg-blue-600 py-1.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {status === "uploading" ? "Caricamento…" : "Conferma caricamento"}
+        {status === "uploading" ? "Caricamento…" : "Carica nella pratica"}
       </button>
     </div>
   );
@@ -187,19 +187,17 @@ export default function DocumentsPanel({
       )}
 
       {pendingVisuraCategory && !showAcquire && (
-        <div className="mb-3 rounded-lg border border-blue-600/40 bg-blue-600/10 p-3 text-xs">
-          <p className="mb-2 text-foreground">
-            Hai scaricato la {pendingVisuraCategory.toLowerCase()}? Caricala qui.
-          </p>
+        <div className="mb-3 flex items-center gap-2 rounded-full border border-blue-600/40 bg-blue-600/10 py-1.5 pl-3 pr-1.5 text-xs">
+          <span className="flex-1 text-foreground">Visura scaricata?</span>
           <button
             type="button"
             onClick={() => {
               setAcquireCategory(pendingVisuraCategory);
               setShowAcquire(true);
             }}
-            className="w-full rounded-full bg-blue-600 py-1.5 font-semibold text-white hover:bg-blue-700"
+            className="shrink-0 rounded-full bg-blue-600 px-3 py-1 font-semibold text-white hover:bg-blue-700"
           >
-            Carica la visura
+            Carica nella pratica
           </button>
         </div>
       )}
