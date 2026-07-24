@@ -19,7 +19,7 @@ export default function ChatHome() {
         initial={{ opacity: 0, y: 10, letterSpacing: "0.02em" }}
         animate={{ opacity: 1, y: 0, letterSpacing: "0em" }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="text-shimmer bg-gradient-to-r from-blue-600 via-slate-500 to-blue-600 bg-clip-text text-center font-serif text-xl italic tracking-wide text-transparent md:text-2xl"
+        className="text-shimmer bg-gradient-to-r from-blue-400 via-foreground to-blue-400 bg-clip-text text-center font-serif text-xl italic tracking-wide text-transparent md:text-2xl"
       >
         Fammi una domanda veloce o vai nell&apos;
         <span className="not-italic">Area di Ricerca e Lavoro</span> di AI

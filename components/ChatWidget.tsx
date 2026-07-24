@@ -38,8 +38,11 @@ function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function downloadWord(text: string, index: number) {
@@ -63,11 +66,11 @@ async function downloadPdf(text: string, index: number) {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div className="flex items-center gap-2 py-1">
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="h-2 w-2 rounded-full bg-blue-600"
+          className="h-2 w-2 rounded-full bg-blue-500"
           animate={{ y: [0, -5, 0] }}
           transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
         />
@@ -86,11 +89,11 @@ function MessageActions({ text, index }: { text: string; index: number }) {
   }
 
   return (
-    <div className="mt-2 flex items-center gap-1 text-slate-400">
+    <div className="mt-2 flex items-center gap-1 text-secondary">
       <button
         type="button"
         onClick={handleCopy}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
       >
         {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
         {copied ? "Copiato" : "Copia"}
@@ -98,7 +101,7 @@ function MessageActions({ text, index }: { text: string; index: number }) {
       <button
         type="button"
         onClick={() => downloadWord(text, index)}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
       >
         <FileText size={13} aria-hidden="true" />
         Scarica Word
@@ -106,7 +109,7 @@ function MessageActions({ text, index }: { text: string; index: number }) {
       <button
         type="button"
         onClick={() => downloadPdf(text, index)}
-        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-slate-100 hover:text-slate-900"
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
       >
         <FileDown size={13} aria-hidden="true" />
         Scarica PDF
@@ -117,9 +120,9 @@ function MessageActions({ text, index }: { text: string; index: number }) {
 
 /**
  * The live chat with the Aurora coordinatore agent — proxied through
- * api/agente-coordinatore.js. ChatGPT-style layout on a white surface:
- * both sides render as raised cards (vignette), blue for the user, white
- * with a soft border for the assistant.
+ * api/agente-coordinatore.js. ChatGPT-style layout: the user's own
+ * messages get a blue pill; assistant replies render as continuous,
+ * selectable text with no box/border, exactly like ChatGPT.
  */
 export default function ChatWidget({
   onNewConversation,
@@ -214,7 +217,7 @@ export default function ChatWidget({
         aria-live="polite"
       >
         {messages.length === 0 && (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-secondary">
             Scrivi un messaggio per iniziare a parlare con l&apos;assistente.
           </p>
         )}
@@ -244,11 +247,8 @@ export default function ChatWidget({
               </div>
             </div>
           ) : (
-            <div
-              key={i}
-              className="max-w-[85%] select-text rounded-2xl border border-slate-200 bg-white px-5 py-4 text-[15px] leading-7 text-slate-800 shadow-sm"
-            >
-              <div className="space-y-2 [&_a]:text-blue-600 [&_a]:underline [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
+            <div key={i} className="max-w-[85ch] select-text text-[15px] leading-7 text-foreground">
+              <div className="space-y-2 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
                 <ReactMarkdown>{m.text}</ReactMarkdown>
               </div>
               <MessageActions text={m.text} index={i} />
@@ -259,13 +259,13 @@ export default function ChatWidget({
         {status === "loading" && <TypingIndicator />}
 
         {status === "error" && (
-          <p className="text-sm text-red-600">{errorMsg}</p>
+          <p className="text-sm text-destructive">{errorMsg}</p>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="mt-4">
         {attachment && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <div className="mb-2 flex items-center gap-2 rounded-xl border bg-muted px-3 py-2 text-xs text-secondary">
             {attachment.isImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={attachment.dataUrl} alt={attachment.name} className="h-8 w-8 rounded object-cover" />
@@ -276,7 +276,7 @@ export default function ChatWidget({
             <button
               type="button"
               onClick={() => setAttachment(null)}
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+              className="rounded-full p-1 text-secondary hover:bg-background hover:text-foreground"
               aria-label="Rimuovi allegato"
             >
               <X size={13} aria-hidden="true" />
@@ -284,7 +284,7 @@ export default function ChatWidget({
           </div>
         )}
 
-        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-2 shadow-sm">
+        <div className="flex items-center gap-2 rounded-full border bg-background px-2 py-2 shadow-sm">
           <input
             ref={fileInputRef}
             type="file"
@@ -295,7 +295,7 @@ export default function ChatWidget({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Allega file o foto"
           >
             <Paperclip size={17} aria-hidden="true" />
@@ -307,7 +307,7 @@ export default function ChatWidget({
             placeholder="Scrivi un messaggio…"
             maxLength={2000}
             disabled={status === "loading"}
-            className="flex-1 bg-transparent px-1 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:opacity-60"
+            className="flex-1 bg-transparent px-1 py-1.5 text-sm text-foreground placeholder:text-secondary focus:outline-none disabled:opacity-60"
           />
           <button
             type="submit"
