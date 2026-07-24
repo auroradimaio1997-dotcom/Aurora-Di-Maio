@@ -279,6 +279,46 @@ function CategoryUploadSection({
   );
 }
 
+/**
+ * Free-text extra clauses the notary wants folded into the draft — kept
+ * for the current session only (not persisted), appended as context
+ * whenever a message is sent.
+ */
+function ClausoleAggiuntiveSection({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-3 rounded-lg border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <span>Clausole aggiuntive</span>
+        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </button>
+
+      {open && (
+        <div className="border-t p-3 text-xs">
+          <textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={3}
+            placeholder="Scrivi qui eventuali clausole da aggiungere all'atto…"
+            className="w-full resize-none rounded-md border bg-background px-2 py-1.5 text-foreground"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const SMARTACCESS_URL = "https://webrun.notariato.it/smartaccess/";
 
 function VisureHub({ onOpenPortal }: { onOpenPortal: (category: "Visure ipocatastali" | "Visure camerali") => void }) {
@@ -329,6 +369,7 @@ export default function PracticeWorkspace({
   const [status, setStatus] = useState<"idle" | "loading" | "not-configured" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [activeTemplate, setActiveTemplate] = useState<PracticeTemplate | null>(null);
+  const [clausoleAggiuntive, setClausoleAggiuntive] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -375,6 +416,9 @@ export default function PracticeWorkspace({
           ? `\n\nRispetto allo schema, tieni conto di questo: ${activeTemplate.notes}`
           : "";
         contextualMessage = `${schemaText}${notesText}\n\nRichiesta: ${text}`;
+      }
+      if (clausoleAggiuntive.trim()) {
+        contextualMessage = `${contextualMessage}\n\nClausole aggiuntive da inserire nell'atto: ${clausoleAggiuntive.trim()}`;
       }
 
       const res = await fetch("/api/agente-coordinatore", {
@@ -443,6 +487,8 @@ export default function PracticeWorkspace({
         category="Documenti delle parti"
         practiceId={practice.practice_id}
       />
+
+      <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
         {messages.length === 0 && (
