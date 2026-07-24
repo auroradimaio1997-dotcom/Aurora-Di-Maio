@@ -27,7 +27,7 @@ function HighlightedActText({ text }: { text: string }) {
         PLACEHOLDER_TEST_PATTERN.test(part) ? (
           <mark
             key={i}
-            className="rounded bg-yellow-300/40 px-1 font-sans text-[9pt] font-semibold text-yellow-800 dark:text-yellow-200"
+            className="rounded bg-yellow-300/40 px-1 font-sans text-[9pt] font-semibold text-red-700"
           >
             {part}
           </mark>
