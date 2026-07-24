@@ -265,9 +265,9 @@ export default function DocumentsPanel({
   }
 
   return (
-    <div className="flex h-full w-full flex-col border-l bg-background p-3">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Documenti della pratica</h3>
+    <div className="flex h-full w-80 shrink-0 flex-col overflow-y-auto border-l bg-background p-3">
+      <div className="mb-1 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Documenti caricati</h3>
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -277,6 +277,9 @@ export default function DocumentsPanel({
           <ChevronRight size={16} aria-hidden="true" />
         </button>
       </div>
+      <p className="mb-3 text-xs text-secondary">
+        Qui vedi tutto ciò che hai già caricato e puoi caricarne altri.
+      </p>
 
       {notConfigured && (
         <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">
@@ -325,7 +328,7 @@ export default function DocumentsPanel({
           className="mb-3 flex items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
           <Upload size={13} aria-hidden="true" />
-          Acquisisci documento
+          Carica altri documenti
         </button>
       )}
 
