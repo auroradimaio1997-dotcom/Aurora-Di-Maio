@@ -89,7 +89,11 @@ function MessageActions({ text, index }: { text: string; index: number }) {
  * continuous, selectable text (no boxed bubble); only the user's own
  * messages get a subtle pill for turn-taking clarity.
  */
-export default function ChatWidget() {
+export default function ChatWidget({
+  onNewConversation,
+}: {
+  onNewConversation?: () => void;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -136,13 +140,25 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="mt-10">
+    <div className="mt-6 flex min-h-0 flex-1 flex-col">
+      {onNewConversation && messages.length > 0 && (
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            onClick={onNewConversation}
+            className="rounded-full px-3 py-1 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground"
+          >
+            Nuova conversazione
+          </button>
+        </div>
+      )}
+
       <div
         ref={scrollRef}
         className={
           messages.length === 0
-            ? "flex min-h-[120px] items-center py-2"
-            : "max-h-[60vh] space-y-5 overflow-y-auto py-2"
+            ? "flex flex-1 items-center justify-center py-2"
+            : "flex-1 space-y-5 overflow-y-auto py-2"
         }
         aria-live="polite"
       >

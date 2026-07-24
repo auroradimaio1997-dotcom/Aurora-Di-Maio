@@ -1,95 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { motion } from "framer-motion";
 import ChatWidget from "./ChatWidget";
 
-type QuickAction = {
-  emoji: string;
-  label: string;
-  href?: string;
-};
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { emoji: "⚖️", label: "Redigi un atto", href: "/assistente-notarile/redazione-atti" },
-  { emoji: "📖", label: "Ricerca notarile", href: "/assistente-notarile/ricerca-notarile" },
-  { emoji: "📚", label: "Ricerca giuridica", href: "/assistente-notarile/ricerca-giuridica" },
-  { emoji: "🎓", label: "Dottorato", href: "/accademia/dottorato" },
-  { emoji: "✍️", label: "Scrivi un saggio", href: "/accademia/lavori-in-corso/saggi-da-pubblicare" },
-  { emoji: "📄", label: "Analizza un documento" },
-];
-
 /**
- * The chat landing view shown once the visitor clicks "Entra
- * nell'assistente": greeting, quick actions (5 route to a matching
- * sidebar destination; "Analizza un documento" has none defined yet), and
- * a live chat wired to the Aurora coordinatore agent.
+ * The chat landing view. Kept intentionally minimal — a single animated
+ * caption, then the whole remaining space belongs to the chat itself.
+ * "Nuova conversazione" lives inside ChatWidget's own header instead of a
+ * separate quick-action grid.
  */
 export default function ChatHome() {
   const [chatKey, setChatKey] = useState(0);
 
   return (
-    <div>
-      <h2 className="font-serif text-3xl font-semibold text-foreground md:text-4xl">
-        Buongiorno Aurora 👋
-      </h2>
-      <p className="mt-2 text-lg text-secondary">
-        Cosa dobbiamo fare in questo momento?
-      </p>
-      <p className="mt-1 text-sm text-secondary">
-        Per orientarti e per domande veloci. Per un lavoro specialistico ti
-        indirizzerò alla sezione giusta in Aree di Ricerca e Lavoro.
-      </p>
+    <div className="flex h-[calc(100dvh-160px)] min-h-[520px] flex-col">
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="text-center font-serif text-lg text-secondary md:text-xl"
+      >
+        Fammi una domanda veloce o vai nell&apos;
+        <span className="text-gold">Area di Ricerca e Lavoro</span> di AI
+        Aurora Studio.
+      </motion.p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {QUICK_ACTIONS.map((action) =>
-          action.href ? (
-            <Link
-              key={action.label}
-              href={action.href}
-              className="group flex items-center gap-3 rounded-xl border bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
-            >
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg transition-colors group-hover:bg-gold/10"
-                aria-hidden="true"
-              >
-                {action.emoji}
-              </span>
-              <span className="text-sm font-medium text-foreground">{action.label}</span>
-            </Link>
-          ) : (
-            <button
-              key={action.label}
-              type="button"
-              className="flex items-center gap-3 rounded-xl border bg-background p-4 text-left opacity-50"
-            >
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg"
-                aria-hidden="true"
-              >
-                {action.emoji}
-              </span>
-              <span className="text-sm font-medium text-foreground">{action.label}</span>
-            </button>
-          )
-        )}
-
-        <button
-          type="button"
-          onClick={() => setChatKey((k) => k + 1)}
-          className="group flex items-center gap-3 rounded-xl border bg-background p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
-        >
-          <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg transition-colors group-hover:bg-gold/10"
-            aria-hidden="true"
-          >
-            💬
-          </span>
-          <span className="text-sm font-medium text-foreground">Nuova conversazione</span>
-        </button>
-      </div>
-
-      <ChatWidget key={chatKey} />
+      <ChatWidget key={chatKey} onNewConversation={() => setChatKey((k) => k + 1)} />
     </div>
   );
 }
