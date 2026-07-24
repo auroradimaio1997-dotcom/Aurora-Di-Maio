@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import AuroraCharacter, { type CharacterState } from "./character/AuroraCharacter";
@@ -10,30 +10,43 @@ type Scene = {
   label: string;
   lines: string[];
   state: CharacterState;
+  start: number;
+  end: number;
 };
 
+// start/end (seconds) mirror the cuts baked into public/avatar/aurora-journey
+// itself — laurea hold, laurea->dottorato morph, dottorato hold,
+// dottorato->notaio morph, notaio hold — with the switch landing halfway
+// through each morph. That keeps this caption in step with the video
+// instead of drifting on its own independent clock.
 const SCENES: Scene[] = [
   {
     key: "laurea",
     label: "Laurea",
     lines: ["La corona d'alloro.", "La pergamena. Il primo traguardo."],
     state: "smiling",
+    start: 0,
+    end: 12,
   },
   {
     key: "dottorato",
     label: "Dottorato",
     lines: ["Biblioteca, notte fonda.", "Ricerca, scrittura, riferimenti giuridici."],
     state: "writing",
+    start: 12,
+    end: 25,
   },
   {
     key: "notaio",
     label: "Notaio",
     lines: ["La firma. Il sigillo.", "ATTO AUTENTICATO"],
     state: "stamping",
+    start: 25,
+    end: 34.02,
   },
 ];
 
-const SCENE_MS = 3400;
+const VIDEO_LOOP_S = SCENES[SCENES.length - 1].end;
 
 /**
  * The Home hero. Title, subtitle and the two primary actions are visible
@@ -43,15 +56,21 @@ const SCENE_MS = 3400;
 export default function CinematicIntro() {
   const reduceMotion = useReducedMotion();
   const [sceneIndex, setSceneIndex] = useState(0);
+  const startedAt = useRef<number | null>(null);
 
   useEffect(() => {
     if (reduceMotion) return;
-    const t = setTimeout(
-      () => setSceneIndex((i) => (i + 1) % SCENES.length),
-      SCENE_MS
-    );
-    return () => clearTimeout(t);
-  }, [sceneIndex, reduceMotion]);
+    startedAt.current = performance.now();
+    let raf = 0;
+    const tick = () => {
+      const elapsed = ((performance.now() - startedAt.current!) / 1000) % VIDEO_LOOP_S;
+      const next = SCENES.findIndex((s) => elapsed >= s.start && elapsed < s.end);
+      if (next !== -1) setSceneIndex((i) => (i === next ? i : next));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [reduceMotion]);
 
   const scene = SCENES[sceneIndex];
 
