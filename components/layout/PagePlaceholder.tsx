@@ -27,7 +27,7 @@ export default function PagePlaceholder({
             <span key={i} className="flex items-center gap-1">
               {i > 0 && <ChevronRight size={12} aria-hidden="true" />}
               {crumb.href ? (
-                <Link href={crumb.href} className="hover:text-gold">
+                <Link href={crumb.href} className="hover:text-foreground">
                   {crumb.label}
                 </Link>
               ) : (
@@ -54,7 +54,7 @@ export default function PagePlaceholder({
               href={child.href}
               className="group rounded-xl border bg-background p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
             >
-              <span className="font-serif text-lg font-semibold text-foreground group-hover:text-gold">
+              <span className="font-serif text-lg font-semibold text-foreground group-hover:text-foreground">
                 {child.label}
               </span>
               <p className="mt-1 text-sm text-secondary">Contenuto in arrivo.</p>

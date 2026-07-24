@@ -48,7 +48,7 @@ export default function ChatHome() {
               <span className="text-2xl" aria-hidden="true">
                 {action.emoji}
               </span>
-              <span className="font-serif text-base font-semibold text-foreground group-hover:text-gold">
+              <span className="font-serif text-base font-semibold text-foreground group-hover:text-foreground">
                 {action.label}
               </span>
             </Link>
@@ -76,7 +76,7 @@ export default function ChatHome() {
           <span className="text-2xl" aria-hidden="true">
             💬
           </span>
-          <span className="font-serif text-base font-semibold text-foreground group-hover:text-gold">
+          <span className="font-serif text-base font-semibold text-foreground group-hover:text-foreground">
             Nuova conversazione
           </span>
         </button>

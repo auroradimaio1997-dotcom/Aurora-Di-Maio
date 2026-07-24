@@ -110,7 +110,7 @@ export default function CinematicIntro({
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center gap-6"
             >
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
                 {scene.label}
               </span>
 
@@ -142,7 +142,7 @@ export default function CinematicIntro({
                   <span className="text-gold">AI</span> AURORA STUDIO
                 </h1>
                 <p className="mt-4 text-lg text-secondary md:text-xl">
-                  L&apos;Intelligenza Artificiale al servizio del Notariato.
+                  L&apos;intelligenza artificiale per la ricerca e la professione.
                 </p>
               </div>
 
@@ -151,9 +151,9 @@ export default function CinematicIntro({
                 onClick={onEnter}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="glass rounded-full px-8 py-3 text-sm font-semibold uppercase tracking-wide text-gold transition-colors hover:bg-gold/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="rounded-full bg-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-navy transition-colors hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
-                Entra nell&apos;assistente
+                Lavora con AI Aurora Studio
               </motion.button>
             </motion.div>
           )}

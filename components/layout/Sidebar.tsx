@@ -19,7 +19,7 @@ function GroupBlock({ group, pathname }: { group: NavGroup; pathname: string }) 
           type="button"
           onClick={() => setOpen((v) => !v)}
           className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium transition-colors ${
-            isActiveGroup ? "text-gold" : "text-foreground hover:text-gold"
+            isActiveGroup ? "text-gold" : "text-foreground"
           }`}
           aria-expanded={open}
         >
@@ -34,7 +34,7 @@ function GroupBlock({ group, pathname }: { group: NavGroup; pathname: string }) 
         <Link
           href={group.href}
           className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            pathname === group.href ? "text-gold" : "text-foreground hover:text-gold"
+            pathname === group.href ? "text-gold" : "text-foreground"
           }`}
         >
           {group.label}
@@ -50,7 +50,7 @@ function GroupBlock({ group, pathname }: { group: NavGroup; pathname: string }) 
                 className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
                   pathname === child.href
                     ? "text-gold"
-                    : "text-secondary hover:text-gold"
+                    : "text-secondary hover:text-foreground"
                 }`}
               >
                 {child.label}
@@ -73,7 +73,7 @@ function SidebarContent() {
           <Link
             href={section.href}
             className={`block px-3 pb-2 text-xs font-semibold uppercase tracking-[0.15em] transition-colors ${
-              pathname === section.href ? "text-gold" : "text-secondary hover:text-gold"
+              pathname === section.href ? "text-gold" : "text-secondary hover:text-foreground"
             }`}
           >
             {section.label}
