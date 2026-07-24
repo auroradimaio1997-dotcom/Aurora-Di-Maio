@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
+import NotarySeal3D from "@/components/icons3d/NotarySeal3D";
+import BooksAndLaptop3D from "@/components/icons3d/BooksAndLaptop3D";
 
 export const metadata: Metadata = {
   title: "Aree di Ricerca e Lavoro | AI Aurora Studio",
@@ -11,13 +13,13 @@ const AREAS = [
     label: "Assistente Notarile",
     href: "/assistente-notarile",
     description: "Redazione atti, ricerca giuridica, dottrina, tassazione e adempimenti.",
-    emoji: "⚖️",
+    Icon: NotarySeal3D,
   },
   {
     label: "Accademia",
     href: "/accademia",
     description: "Dottorato, ricerca, lavori in corso e monografia.",
-    emoji: "🎓",
+    Icon: BooksAndLaptop3D,
   },
 ];
 
@@ -42,9 +44,7 @@ export default function AreeDiRicercaELavoroPage() {
             href={area.href}
             className="group flex flex-col gap-2 rounded-xl border bg-background p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lg hover:shadow-gold/5"
           >
-            <span className="text-2xl" aria-hidden="true">
-              {area.emoji}
-            </span>
+            <area.Icon size={64} />
             <span className="font-serif text-lg font-semibold text-foreground">
               {area.label}
             </span>
