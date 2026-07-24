@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ChevronDown, ChevronRight, ClipboardCheck, FileText, Loader2, Plus, Send, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardCheck, FileText, Landmark, Loader2, Plus, Send, Trash2 } from "lucide-react";
 import {
   createTemplate,
   deleteTemplate,
@@ -533,6 +533,15 @@ export default function PracticeWorkspace({
     }
   }
 
+  async function handleVerificaTassazione() {
+    if (status === "loading") return;
+    const lastDraft = [...messages].reverse().find((m) => m.role === "aurora")?.text;
+    const prompt = lastDraft
+      ? `Verifica la tassazione applicabile al seguente atto: indica imposte dovute (registro, ipotecaria, catastale, bollo, ecc.), aliquote applicabili ed eventuali agevolazioni, con riferimenti normativi.\n\nATTO:\n${lastDraft}`
+      : "Verifica la tassazione applicabile a questo tipo di atto (nessuna bozza ancora scritta in questa pratica): indica imposte dovute, aliquote applicabili ed eventuali agevolazioni, con riferimenti normativi.";
+    await sendToAgent("Verifica tassazione", prompt);
+  }
+
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
       <div className="mb-3 border-b pb-3">
@@ -663,17 +672,29 @@ export default function PracticeWorkspace({
         {status === "error" && <p className="text-sm text-destructive">{errorMsg}</p>}
       </div>
 
-      <label className="mt-3 flex w-fit cursor-pointer items-center gap-1.5 self-end rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground">
-        <ClipboardCheck size={13} aria-hidden="true" />
-        Revisiona bozza
-        <input
-          type="file"
-          accept="application/pdf,.docx,.txt"
-          onChange={handleReviewDraft}
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={handleVerificaTassazione}
           disabled={status === "loading"}
-          className="hidden"
-        />
-      </label>
+          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Landmark size={13} aria-hidden="true" />
+          Verifica tassazione (AI)
+        </button>
+
+        <label className="flex w-fit cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground">
+          <ClipboardCheck size={13} aria-hidden="true" />
+          Revisiona bozza
+          <input
+            type="file"
+            accept="application/pdf,.docx,.txt"
+            onChange={handleReviewDraft}
+            disabled={status === "loading"}
+            className="hidden"
+          />
+        </label>
+      </div>
 
       <form onSubmit={handleSubmit} className="mt-2 flex items-center gap-2 rounded-full border bg-background px-2 py-2">
         <input

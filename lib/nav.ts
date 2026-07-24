@@ -55,16 +55,6 @@ export const NAV: NavSection[] = [
         ],
       },
       {
-        label: "Tassazione",
-        href: "/assistente-notarile/visure-adempimenti/tassazione",
-        children: [],
-      },
-      {
-        label: "Adempimenti",
-        href: "/assistente-notarile/visure-adempimenti/adempimenti",
-        children: [],
-      },
-      {
         label: "Visure",
         href: "/assistente-notarile/visure-adempimenti",
         children: [
