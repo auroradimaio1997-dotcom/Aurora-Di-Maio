@@ -10,6 +10,7 @@ type ResearchMessage = {
   role: "user" | "aurora";
   text: string;
   savedToPracticeTitle?: string;
+  saveFailed?: boolean;
 };
 
 function stripMarkdown(text: string) {
@@ -173,23 +174,28 @@ export default function ResearchTool({
       const answer = data.risposta || "Nessuna risposta ricevuta.";
 
       let savedToPracticeTitle: string | undefined;
+      let saveFailed = false;
       if (selectedPractice) {
         try {
           await postMessage(selectedPractice.practice_id, { role: "user", text });
           await postMessage(selectedPractice.practice_id, { role: "aurora", text: answer });
           await uploadDocument(selectedPractice.practice_id, {
-            name: `Ricerca - ${text.slice(0, 60)}.txt`,
-            category: "Dottrina e Giurisprudenza",
+            name: `Ricerca approfondita - ${text.slice(0, 60)}.txt`,
+            category: "Ricerca Approfondita",
             mimeType: "text/plain",
-            dataBase64: textToBase64(answer),
+            dataBase64: textToBase64(`RICERCA APPROFONDITA COLLEGATA A QUEST'ATTO\n\nDomanda: ${text}\n\n${answer}`),
           });
           savedToPracticeTitle = selectedPractice.title;
         } catch (saveErr) {
-          if (!(saveErr instanceof PracticeStorageNotConfiguredError)) throw saveErr;
+          if (saveErr instanceof PracticeStorageNotConfiguredError) {
+            saveFailed = true;
+          } else {
+            throw saveErr;
+          }
         }
       }
 
-      setMessages((prev) => [...prev, { role: "aurora", text: answer, savedToPracticeTitle }]);
+      setMessages((prev) => [...prev, { role: "aurora", text: answer, savedToPracticeTitle, saveFailed }]);
       setStatus("idle");
     } catch (err) {
       setStatus("error");
@@ -237,8 +243,16 @@ export default function ResearchTool({
                 <ReactMarkdown>{m.text}</ReactMarkdown>
               </div>
               {m.savedToPracticeTitle && (
-                <p className="mt-1 text-xs text-blue-500">
-                  Salvata nella pratica &quot;{m.savedToPracticeTitle}&quot;.
+                <p className="mt-1 flex items-center gap-1 text-xs font-medium text-blue-500">
+                  <Check size={13} aria-hidden="true" />
+                  Salvata nella pratica &quot;{m.savedToPracticeTitle}&quot;, sezione &quot;Ricerca
+                  approfondita collegata a quest&apos;atto&quot;.
+                </p>
+              )}
+              {m.saveFailed && (
+                <p className="mt-1 text-xs text-secondary">
+                  Archiviazione permanente in preparazione: non è stato possibile salvare questa
+                  ricerca nella pratica.
                 </p>
               )}
               <MessageActions text={m.text} index={i} />

@@ -286,6 +286,7 @@ export default function DocumentsPanel({
     (d) => d.category === "Visure ipocatastali" || d.category === "Visure camerali"
   );
   const dottrina = documents.filter((d) => d.category === "Dottrina e Giurisprudenza");
+  const ricercaApprofondita = documents.filter((d) => d.category === "Ricerca Approfondita");
   const partiIdentita = documents.filter((d) => d.category === "Documenti delle parti");
   const dichiarazioneSuccessione = documents.filter((d) => d.category === "Dichiarazione di Successione");
   const certificatoMorte = documents.filter((d) => d.category === "Certificato di Morte");
@@ -392,6 +393,11 @@ export default function DocumentsPanel({
         <DocumentGroup
           label="Dottrina e giurisprudenza di riferimento"
           items={dottrina.map(docToItem)}
+        />
+        <DocumentGroup
+          label="Ricerca approfondita collegata a quest'atto"
+          items={ricercaApprofondita.map(docToItem)}
+          defaultOpen
         />
         <DocumentGroup label="Visure caricate" items={visure.map(docToItem)} />
         <DocumentGroup label="Documenti di identità delle parti" items={partiIdentita.map(docToItem)} />
