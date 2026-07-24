@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "ai-avatar-generation": {
+      "source": "eachlabs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ai-avatar-generation/SKILL.md",
+      "computedHash": "1bc12b347d8529e582e85fa81d12517273907b1c255b6e9e79ea81349f026503"
+    },
     "hallmark": {
       "source": "Nutlope/hallmark",
       "sourceType": "github",
