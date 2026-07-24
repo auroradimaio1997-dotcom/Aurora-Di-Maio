@@ -33,7 +33,7 @@ export default function PracticeCenter({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [notConfigured, setNotConfigured] = useState(false);
-  const [mobileView, setMobileView] = useState<"practices" | "chat" | "documents">("chat");
+  const [mobileView, setMobileView] = useState<"practices" | "chat" | "documents">("practices");
   const [docsCollapsed, setDocsCollapsed] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingVisuraCategory, setPendingVisuraCategory] = useState<DocumentCategory | null>(null);
