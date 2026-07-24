@@ -140,6 +140,14 @@ export function postMessage(
   );
 }
 
+export function updateMessage(messageId: string, text: string) {
+  return request<{ message: PracticeMessage }>(`/api/practice-messages/${messageId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+}
+
 export function listTemplates(practiceType: string) {
   return request<{ templates: PracticeTemplate[] }>(
     `/api/practice-templates?practiceType=${encodeURIComponent(practiceType)}`

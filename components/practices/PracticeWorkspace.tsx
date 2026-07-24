@@ -29,6 +29,7 @@ import {
   postMessage,
   readFileAsBase64,
   saveClausoleAggiuntive,
+  updateMessage,
   updatePracticeStatus,
   updateTemplate,
   uploadDocument,
@@ -220,6 +221,96 @@ function ActMessageActions({ text, onOpen }: { text: string; onOpen?: () => void
         <FileDown size={13} aria-hidden="true" />
         Scarica PDF
       </button>
+    </div>
+  );
+}
+
+/**
+ * A single act draft written by Aurora, editable in place — the notary
+ * can correct the text directly and save it back to the practice.
+ */
+function ActMessage({
+  message,
+  onOpenViewer,
+  onUpdated,
+}: {
+  message: PracticeMessage;
+  onOpenViewer: (text: string) => void;
+  onUpdated: (message: PracticeMessage) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(message.text);
+  const [saving, setSaving] = useState(false);
+
+  function startEdit() {
+    setDraft(message.text);
+    setEditing(true);
+  }
+
+  async function handleSave() {
+    if (!draft.trim()) return;
+    setSaving(true);
+    try {
+      const { message: updated } = await updateMessage(message.message_id, draft.trim());
+      onUpdated(updated);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const displayText = stripMarkdown(message.text);
+
+  return (
+    <div className="w-full max-w-none rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm">
+      {editing ? (
+        <div>
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={14}
+            className="w-full resize-y rounded-md border px-3 py-2 text-black"
+            style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
+          />
+          <div className="mt-2 flex items-center gap-2 font-sans text-xs">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!draft.trim() || saving}
+              className="rounded-full bg-blue-600 px-3 py-1.5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? "Salvataggio…" : "Salva modifiche"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="rounded-full border px-3 py-1.5 text-secondary hover:bg-muted hover:text-foreground"
+            >
+              Annulla
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div
+            className="select-text overflow-x-auto"
+            style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
+          >
+            <HighlightedActText text={displayText} />
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-black/10 pt-2 font-sans text-secondary">
+            <button
+              type="button"
+              onClick={startEdit}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Pencil size={13} aria-hidden="true" />
+              Modifica
+            </button>
+          </div>
+          <ActMessageActions text={displayText} onOpen={() => onOpenViewer(displayText)} />
+        </>
+      )}
     </div>
   );
 }
@@ -982,21 +1073,14 @@ export default function PracticeWorkspace({
               </div>
             </div>
           ) : (
-            <div
+            <ActMessage
               key={m.message_id}
-              className="w-full max-w-none rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
-            >
-              <div
-                className="select-text overflow-x-auto"
-                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
-              >
-                <HighlightedActText text={stripMarkdown(m.text)} />
-              </div>
-              <ActMessageActions
-                text={stripMarkdown(m.text)}
-                onOpen={() => setOpenActText(stripMarkdown(m.text))}
-              />
-            </div>
+              message={m}
+              onOpenViewer={setOpenActText}
+              onUpdated={(updated) =>
+                setMessages((prev) => prev.map((msg) => (msg.message_id === updated.message_id ? updated : msg)))
+              }
+            />
           )
         )}
         {status === "loading" && (
