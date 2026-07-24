@@ -159,7 +159,14 @@ export default function ResearchTool({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: `${promptFrame}\n\nRichiesta: ${text}` }),
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(
+          "La ricerca sta impiegando troppo tempo o il server non ha risposto correttamente. Riprova."
+        );
+      }
       if (!res.ok) {
         throw new Error(data.error || "Errore nella risposta.");
       }

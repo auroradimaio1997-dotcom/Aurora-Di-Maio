@@ -9,7 +9,11 @@
 // The secret stays server-side only — never reference it from client code.
 
 const AGENT_URL = "https://auroradimaio.app.n8n.cloud/webhook/aurora-coordinatore";
-const AGENT_TIMEOUT_MS = 60 * 1000;
+// Research-style requests can take Aurora well over a minute to answer;
+// keep this comfortably under the Vercel function's own maxDuration
+// (vercel.json) so we return a clean JSON error instead of the platform
+// itself killing the function and returning an HTML timeout page.
+const AGENT_TIMEOUT_MS = 290 * 1000;
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");

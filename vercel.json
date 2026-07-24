@@ -7,7 +7,7 @@
       "maxDuration": 300
     },
     "api/agente-coordinatore.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   }
 }

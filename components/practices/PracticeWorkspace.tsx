@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import {
   Check,
   ChevronDown,
@@ -136,14 +137,18 @@ function stripMarkdown(text: string) {
     .replace(/\[(.*?)\]\(.*?\)/g, "$1");
 }
 
-const NON_ACT_TRIGGERS = ["Verifica tassazione", "Revisiona la tua ultima bozza modificata", "Revisione bozza:"];
-
-/** Only replies to an actual act-drafting request get the notarial-deed
- * treatment (Courier New, centered titles, justified body) — tax checks,
- * draft reviews and other AI answers use the normal chat font instead. */
-function isActDraftReply(precedingUserText: string | undefined) {
-  if (!precedingUserText) return true;
-  return !NON_ACT_TRIGGERS.some((trigger) => precedingUserText.startsWith(trigger));
+/** Only a reply that actually IS a drafted act gets the notarial-deed
+ * treatment (Courier New, centered titles, justified body) — questions,
+ * explanations, tax checks, draft reviews, everything else the AI says
+ * uses the normal, elegant chat font instead. A real act is long and
+ * opens with a centered all-caps heading, exactly like on paper. */
+function isActDraft(text: string) {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length < 5 || text.length < 500) return false;
+  return isTitleLine(lines[0]);
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -397,10 +402,18 @@ function SchemaSection({
   practiceType,
   activeTemplateId,
   onActiveTemplateChange,
+  clausoleAggiuntiveProps,
 }: {
   practiceType: string;
   activeTemplateId: string | null;
   onActiveTemplateChange: (template: PracticeTemplate | null) => void;
+  clausoleAggiuntiveProps: {
+    practiceId: string;
+    value: string;
+    onChange: (value: string) => void;
+    savedValue: string;
+    onSaved: (value: string) => void;
+  };
 }) {
   const [open, setOpen] = useState(false);
   const [templates, setTemplates] = useState<PracticeTemplate[]>([]);
@@ -639,6 +652,10 @@ function SchemaSection({
               Carica schema
             </button>
           )}
+
+          <div className="mt-3 border-t pt-3">
+            <ClausoleAggiuntiveSection {...clausoleAggiuntiveProps} />
+          </div>
         </div>
       )}
     </div>
@@ -1012,7 +1029,14 @@ export default function PracticeWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: agentMessage }),
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(
+          "La richiesta sta impiegando troppo tempo o il server non ha risposto correttamente. Riprova."
+        );
+      }
       if (!res.ok) {
         throw new Error(data.error || "Errore nella risposta.");
       }
@@ -1120,7 +1144,7 @@ export default function PracticeWorkspace({
                 {m.text}
               </div>
             </div>
-          ) : isActDraftReply(messages[i - 1]?.text) ? (
+          ) : isActDraft(stripMarkdown(m.text)) ? (
             <ActMessage
               key={m.message_id}
               message={m}
@@ -1132,9 +1156,11 @@ export default function PracticeWorkspace({
           ) : (
             <div
               key={m.message_id}
-              className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-muted px-4 py-2.5 text-sm text-foreground shadow-sm"
+              className="max-w-[85ch] select-text font-serif text-[15px] leading-7 text-foreground"
             >
-              {stripMarkdown(m.text)}
+              <div className="space-y-3 [&_a]:text-blue-500 [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-sans [&_code]:text-sm [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:m-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5">
+                <ReactMarkdown>{m.text}</ReactMarkdown>
+              </div>
             </div>
           )
         )}
@@ -1223,18 +1249,17 @@ export default function PracticeWorkspace({
           }}
         />
 
-        <ClausoleAggiuntiveSection
-          practiceId={practice.practice_id}
-          value={clausoleAggiuntive}
-          onChange={setClausoleAggiuntive}
-          savedValue={savedClausoleAggiuntive}
-          onSaved={setSavedClausoleAggiuntive}
-        />
-
         <SchemaSection
           practiceType={practice.practice_type}
           activeTemplateId={activeTemplate?.template_id ?? null}
           onActiveTemplateChange={setActiveTemplate}
+          clausoleAggiuntiveProps={{
+            practiceId: practice.practice_id,
+            value: clausoleAggiuntive,
+            onChange: setClausoleAggiuntive,
+            savedValue: savedClausoleAggiuntive,
+            onSaved: setSavedClausoleAggiuntive,
+          }}
         />
 
         <VisureHub
