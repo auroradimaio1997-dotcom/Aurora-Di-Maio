@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import {
+  Check,
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
+  Copy,
+  FileDown,
   FileText,
   Landmark,
   Loader2,
@@ -13,6 +16,7 @@ import {
   Plus,
   Send,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   createTemplate,
@@ -65,6 +69,118 @@ function stripMarkdown(text: string) {
     .replace(/^\s*>\s?/gm, "")
     .replace(/^\s*([-*_])\s*\1\s*\1[-*_\s]*$/gm, "")
     .replace(/\[(.*?)\]\(.*?\)/g, "$1");
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadWord(text: string, filename: string) {
+  const html = text.replace(/\n/g, "<br/>");
+  const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body style="font-family:'Courier New',monospace;font-size:10pt;">${html}</body></html>`;
+  const blob = new Blob(["﻿", doc], { type: "application/msword" });
+  downloadBlob(blob, `${filename}.doc`);
+}
+
+async function downloadPdf(text: string, filename: string) {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 48;
+  const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+  const lines = doc.splitTextToSize(text, maxWidth);
+  doc.setFont("courier", "normal");
+  doc.setFontSize(10);
+  doc.text(lines, margin, margin);
+  downloadBlob(doc.output("blob"), `${filename}.pdf`);
+}
+
+/** Copia / apri / scarica actions shown under each act draft written by Aurora. */
+function ActMessageActions({ text, onOpen }: { text: string; onOpen?: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-black/10 pt-2 font-sans text-secondary">
+      {onOpen && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <FileText size={13} aria-hidden="true" />
+          Apri atto
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+      >
+        {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+        {copied ? "Copiato" : "Copia"}
+      </button>
+      <button
+        type="button"
+        onClick={() => downloadWord(text, "atto")}
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <FileText size={13} aria-hidden="true" />
+        Scarica Word
+      </button>
+      <button
+        type="button"
+        onClick={() => downloadPdf(text, "atto")}
+        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <FileDown size={13} aria-hidden="true" />
+        Scarica PDF
+      </button>
+    </div>
+  );
+}
+
+/** Fullscreen modal to read a drafted act comfortably, with the same actions. */
+function ActViewerModal({ text, onClose }: { text: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b px-5 py-3">
+          <h3 className="font-serif text-base font-semibold text-black">Atto</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1.5 text-black/60 hover:bg-black/5 hover:text-black"
+            aria-label="Chiudi"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        <div
+          className="select-text overflow-y-auto whitespace-pre-wrap px-6 py-5 text-black"
+          style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.6 }}
+        >
+          <HighlightedActText text={text} />
+        </div>
+        <div className="border-t px-5 py-2">
+          <ActMessageActions text={text} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function SchemaSection({
@@ -557,6 +673,8 @@ export default function PracticeWorkspace({
   const [clausoleAggiuntive, setClausoleAggiuntive] = useState(practice.clausole_aggiuntive ?? "");
   const [savedClausoleAggiuntive, setSavedClausoleAggiuntive] = useState(practice.clausole_aggiuntive ?? "");
   const [statusSaving, setStatusSaving] = useState(false);
+  const [sectionsOpen, setSectionsOpen] = useState(false);
+  const [openActText, setOpenActText] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -723,6 +841,16 @@ export default function PracticeWorkspace({
         </p>
       )}
 
+      <button
+        type="button"
+        onClick={() => setSectionsOpen((v) => !v)}
+        className="mb-2 flex w-full shrink-0 items-center justify-between rounded-lg border px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
+      >
+        <span>Documenti e riferimenti della pratica</span>
+        {sectionsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+      </button>
+
+      {sectionsOpen && (
       <div className="max-h-56 shrink-0 space-y-0 overflow-y-auto pr-1">
         <CategoryUploadSection
           label="Dottrina e giurisprudenza di riferimento"
@@ -814,6 +942,9 @@ export default function PracticeWorkspace({
           onSaved={setSavedClausoleAggiuntive}
         />
       </div>
+      )}
+
+      {openActText && <ActViewerModal text={openActText} onClose={() => setOpenActText(null)} />}
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2">
         {messages.length === 0 && (
@@ -832,10 +963,18 @@ export default function PracticeWorkspace({
           ) : (
             <div
               key={m.message_id}
-              className="w-full max-w-none select-text overflow-x-auto whitespace-pre-wrap rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
-              style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
+              className="w-full max-w-none rounded-lg border border-black/10 bg-white px-5 py-4 text-black shadow-sm"
             >
-              <HighlightedActText text={stripMarkdown(m.text)} />
+              <div
+                className="select-text overflow-x-auto whitespace-pre-wrap"
+                style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: "10pt", lineHeight: 1.5 }}
+              >
+                <HighlightedActText text={stripMarkdown(m.text)} />
+              </div>
+              <ActMessageActions
+                text={stripMarkdown(m.text)}
+                onOpen={() => setOpenActText(stripMarkdown(m.text))}
+              />
             </div>
           )
         )}
