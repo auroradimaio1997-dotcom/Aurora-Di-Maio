@@ -10,6 +10,8 @@ const links = [
   { href: "/aree-di-ricerca-e-lavoro", label: "Aree di Ricerca e Lavoro" },
 ];
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 /**
  * Persistent header shown on every page. The single place that carries
  * brand identity (logo + avatar + online status) so it never has to be
@@ -24,7 +26,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-3">
           <span className="relative shrink-0">
             <Image
-              src="/avatar/aurora.jpg"
+              src={`${BASE_PATH}/avatar/aurora-disney-icon.png`}
               alt="Aurora"
               width={36}
               height={36}
