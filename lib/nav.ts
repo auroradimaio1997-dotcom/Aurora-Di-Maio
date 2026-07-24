@@ -36,19 +36,19 @@ export const NAV: NavSection[] = [
         ],
       },
       {
-        label: "Ricerca Giuridica",
-        href: "/assistente-notarile/ricerca-notarile",
+        label: "Fai una ricerca scientifica approfondita",
+        href: "/assistente-notarile/ricerca-scientifica",
         children: [
+          { label: "Ricerca dottrinale", href: "/assistente-notarile/ricerca-scientifica/dottrinale" },
           {
-            label: "Banche dati notarili",
-            href: "/assistente-notarile/ricerca-notarile/banche-dati-notarili",
+            label: "Ricerca giurisprudenziale",
+            href: "/assistente-notarile/ricerca-scientifica/giurisprudenziale",
+          },
+          {
+            label: "Ricerca banche dati notarili",
+            href: "/assistente-notarile/ricerca-scientifica/banche-dati-notarili",
           },
         ],
-      },
-      {
-        label: "Dottrina e Giurisprudenza",
-        href: "/assistente-notarile/ricerca-giuridica/dottrina-giurisprudenza",
-        children: [],
       },
       {
         label: "Tassazione",

@@ -15,8 +15,10 @@ export default function AssistenteNotarilePage() {
       >
         {[
           { label: "Redazione Atti", href: "/assistente-notarile/redazione-atti" },
-          { label: "Ricerca Giuridica", href: "/assistente-notarile/ricerca-notarile" },
-          { label: "Dottrina e Giurisprudenza", href: "/assistente-notarile/ricerca-giuridica/dottrina-giurisprudenza" },
+          {
+            label: "Fai una ricerca scientifica approfondita",
+            href: "/assistente-notarile/ricerca-scientifica",
+          },
           { label: "Tassazione", href: "/assistente-notarile/visure-adempimenti/tassazione" },
           { label: "Adempimenti", href: "/assistente-notarile/visure-adempimenti/adempimenti" },
           { label: "Visure", href: "/assistente-notarile/visure-adempimenti" },
