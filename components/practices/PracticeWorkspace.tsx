@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ChevronDown, ChevronRight, ClipboardCheck, FileText, Landmark, Loader2, Plus, Send, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ClipboardCheck,
+  FileText,
+  Landmark,
+  Loader2,
+  MessageCircleQuestion,
+  Plus,
+  Send,
+  Trash2,
+} from "lucide-react";
 import {
   createTemplate,
   deleteTemplate,
@@ -246,13 +257,16 @@ function CategoryUploadSection({
   category,
   practiceId,
   portals,
+  helpText,
 }: {
   label: string;
   category: DocumentCategory;
   practiceId: string;
   portals?: { url: string; label: string }[];
+  helpText?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error" | "not-configured">("idle");
 
@@ -280,14 +294,39 @@ function CategoryUploadSection({
 
   return (
     <div className="mb-3 rounded-lg border">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-secondary hover:text-foreground"
-      >
-        <span>{label}</span>
-        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-      </button>
+      <div className="flex w-full items-center justify-between px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex flex-1 items-center gap-1.5 text-left text-xs font-semibold text-secondary hover:text-foreground"
+        >
+          <span>{label}</span>
+        </button>
+        {helpText && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowHelp((v) => !v);
+            }}
+            className="shrink-0 rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
+            aria-label="Informazioni"
+          >
+            <MessageCircleQuestion size={14} aria-hidden="true" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="shrink-0 text-secondary hover:text-foreground"
+        >
+          {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+        </button>
+      </div>
+
+      {showHelp && helpText && (
+        <div className="mx-3 mb-2 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">{helpText}</div>
+      )}
 
       {open && (
         <div className="space-y-2 border-t p-3 text-xs">
@@ -567,6 +606,7 @@ export default function PracticeWorkspace({
             { url: "https://onelegale.wolterskluwer.it", label: "OneLegale" },
             { url: "https://cnnnotizie.notariato.it", label: "Banche dati notarili" },
           ]}
+          helpText="Carica o cerca tu manualmente dottrina e giurisprudenza che ritieni l'AI non abbia trovato."
         />
 
         <SchemaSection
