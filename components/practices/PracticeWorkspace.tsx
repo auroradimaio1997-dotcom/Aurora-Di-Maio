@@ -312,10 +312,11 @@ function CategoryUploadSection({
               e.stopPropagation();
               setShowHelp((v) => !v);
             }}
-            className="shrink-0 rounded-full p-1 text-secondary hover:bg-muted hover:text-foreground"
+            className="flex shrink-0 items-center gap-1 rounded-full bg-blue-600/15 px-2 py-1 font-semibold text-blue-500 hover:bg-blue-600/25"
             aria-label="Informazioni"
           >
-            <MessageCircleQuestion size={14} aria-hidden="true" />
+            <MessageCircleQuestion size={16} aria-hidden="true" />
+            Info
           </button>
         )}
         <button
@@ -328,12 +329,12 @@ function CategoryUploadSection({
       </div>
 
       {showHelp && helpText && (
-        <div className="mx-3 mb-2 rounded-lg bg-muted px-3 py-2 text-xs text-secondary">
-          <p>{helpText}</p>
+        <div className="mx-3 mb-2 rounded-lg border border-blue-600/40 bg-blue-600/10 px-3 py-2.5 text-xs text-foreground">
+          <p className="font-medium">{helpText}</p>
           {helpLink && (
             <Link
               href={helpLink.href}
-              className="mt-1.5 inline-block font-medium text-blue-500 hover:underline"
+              className="mt-2 inline-block font-semibold text-blue-500 hover:underline"
             >
               {helpLink.label}
             </Link>
