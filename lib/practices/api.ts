@@ -66,14 +66,14 @@ export function uploadDocument(
   );
 }
 
-export function getDocumentSignedUrl(practiceId: string, documentId: string) {
+export function getDocumentSignedUrl(_practiceId: string, documentId: string) {
   return request<{ document: PracticeDocument; url: string; expiresInSeconds: number }>(
-    `/api/practices/${practiceId}/documents/${documentId}`
+    `/api/practice-documents/${documentId}`
   );
 }
 
-export function deleteDocument(practiceId: string, documentId: string) {
-  return request<{ ok: true }>(`/api/practices/${practiceId}/documents/${documentId}`, {
+export function deleteDocument(_practiceId: string, documentId: string) {
+  return request<{ ok: true }>(`/api/practice-documents/${documentId}`, {
     method: "DELETE",
   });
 }

@@ -1,8 +1,14 @@
-const { getSupabaseServerClient } = require("../../../../lib/practices/supabaseServer");
-const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../../../../lib/practices/shared");
+const { getSupabaseServerClient } = require("../../lib/practices/supabaseServer");
+const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors } = require("../../lib/practices/shared");
 
 const SIGNED_URL_TTL_SECONDS = 300; // 5 minutes — never a permanent public URL
 
+// Flat (single dynamic segment) on purpose — Vercel's zero-config Node
+// functions don't reliably route a SECOND nested [param] folder
+// (api/practices/[practiceId]/documents/[documentId].js 404s in
+// production even though it builds fine). document_id is a globally
+// unique UUID, so looking it up alone is enough; no need to also carry
+// practiceId in the path.
 module.exports = async function handler(req, res) {
   setCors(res);
   if (req.method === "OPTIONS") {
@@ -16,13 +22,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { practiceId, documentId } = req.query;
+  const { documentId } = req.query;
 
   if (req.method === "GET") {
     const { data: doc, error: docError } = await supabase
       .from("documents")
       .select("*")
-      .eq("practice_id", practiceId)
       .eq("document_id", documentId)
       .single();
 
@@ -48,7 +53,6 @@ module.exports = async function handler(req, res) {
     const { data: doc, error: docError } = await supabase
       .from("documents")
       .select("storage_path")
-      .eq("practice_id", practiceId)
       .eq("document_id", documentId)
       .single();
 
@@ -59,11 +63,7 @@ module.exports = async function handler(req, res) {
 
     await supabase.storage.from(DOCUMENTS_BUCKET).remove([doc.storage_path]);
 
-    const { error } = await supabase
-      .from("documents")
-      .delete()
-      .eq("practice_id", practiceId)
-      .eq("document_id", documentId);
+    const { error } = await supabase.from("documents").delete().eq("document_id", documentId);
 
     if (error) {
       res.status(500).json({ error: error.message });
