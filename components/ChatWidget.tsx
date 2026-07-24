@@ -42,6 +42,7 @@ function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.target = "_blank";
   a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
@@ -65,7 +66,7 @@ async function downloadPdf(text: string, index: number) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
   doc.text(lines, margin, margin);
-  doc.save(`risposta-aurora-${index + 1}.pdf`);
+  downloadBlob(doc.output("blob"), `risposta-aurora-${index + 1}.pdf`);
 }
 
 function TypingIndicator() {
