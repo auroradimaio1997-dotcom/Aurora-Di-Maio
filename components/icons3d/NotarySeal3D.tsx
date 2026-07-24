@@ -29,7 +29,7 @@ function Seal() {
   );
 
   return (
-    <group ref={group}>
+    <group ref={group} scale={0.58}>
       {/* ribbon tails behind the seal */}
       <mesh position={[-0.35, -0.9, -0.15]} rotation={[0, 0, 0.35]}>
         <planeGeometry args={[0.4, 1.2]} />
