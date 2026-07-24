@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PanelLeft } from "lucide-react";
-import { listPractices, PracticeStorageNotConfiguredError } from "@/lib/practices/api";
-import type { DocumentCategory, Practice } from "@/lib/practices/types";
+import { listPractices, PracticeStorageNotConfiguredError, updatePracticeStatus } from "@/lib/practices/api";
+import { PRACTICE_STATUSES, type DocumentCategory, type Practice } from "@/lib/practices/types";
 import NewPracticeModal from "./NewPracticeModal";
 import PracticeSidebar from "./PracticeSidebar";
 import PracticeWorkspace from "./PracticeWorkspace";
@@ -36,6 +37,9 @@ export default function PracticeCenter({
   const [docsCollapsed, setDocsCollapsed] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingVisuraCategory, setPendingVisuraCategory] = useState<DocumentCategory | null>(null);
+  const [pendingSwitch, setPendingSwitch] = useState<(() => void) | null>(null);
+  const [leaveStatusChoice, setLeaveStatusChoice] = useState("");
+  const router = useRouter();
 
   function handleOpenVisuraPortal(category: DocumentCategory) {
     setPendingVisuraCategory(category);
@@ -69,6 +73,37 @@ export default function PracticeCenter({
     setSelectedId(practice.practice_id);
   }
 
+  /**
+   * Any navigation that would leave a currently open practice (selecting
+   * another one, creating a new one, opening a cross-section result)
+   * first asks the notary what status to leave it in — with an explicit
+   * option to skip saving and move on anyway.
+   */
+  function requestSwitch(action: () => void) {
+    if (!selected) {
+      action();
+      return;
+    }
+    setLeaveStatusChoice(selected.status);
+    setPendingSwitch(() => action);
+  }
+
+  async function handleConfirmLeaveWithSave() {
+    if (selected) {
+      const { practice: updated } = await updatePracticeStatus(selected.practice_id, leaveStatusChoice);
+      handlePracticeUpdated(updated);
+    }
+    const action = pendingSwitch;
+    setPendingSwitch(null);
+    action?.();
+  }
+
+  function handleConfirmLeaveWithoutSave() {
+    const action = pendingSwitch;
+    setPendingSwitch(null);
+    action?.();
+  }
+
   function handlePracticeUpdated(updated: Practice) {
     setPractices((prev) =>
       prev.some((p) => p.practice_id === updated.practice_id)
@@ -86,6 +121,37 @@ export default function PracticeCenter({
     practices.find((p) => p.practice_id === selectedId) ??
     foreignPractices.find((p) => p.practice_id === selectedId) ??
     null;
+
+  // Ask what status to leave the practice in when the notary clicks any
+  // internal link (e.g. the site's left nav) away from this page, not
+  // just when switching practices inside this component.
+  useEffect(() => {
+    if (!selected) return;
+
+    function handleClickCapture(e: MouseEvent) {
+      const link = (e.target as HTMLElement)?.closest("a[href]") as HTMLAnchorElement | null;
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("/") || href === window.location.pathname) return;
+      e.preventDefault();
+      e.stopPropagation();
+      requestSwitch(() => router.push(href));
+    }
+
+    document.addEventListener("click", handleClickCapture, true);
+    return () => document.removeEventListener("click", handleClickCapture, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  useEffect(() => {
+    if (!selected) return;
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [selected]);
 
   if (notConfigured) {
     return (
@@ -124,16 +190,20 @@ export default function PracticeCenter({
               practices={practices}
               selectedId={selectedId}
               onSelect={(id) => {
-                setSelectedId(id);
-                setSidebarOpen(false);
+                requestSwitch(() => {
+                  setSelectedId(id);
+                  setSidebarOpen(false);
+                });
               }}
               onNew={() => {
-                setShowNewModal(true);
-                setSidebarOpen(false);
+                requestSwitch(() => {
+                  setShowNewModal(true);
+                  setSidebarOpen(false);
+                });
               }}
               onTrashed={handleTrashed}
               onRestored={refetchPractices}
-              onFoundPractice={handleFoundPractice}
+              onFoundPractice={(practice) => requestSwitch(() => handleFoundPractice(practice))}
             />
           </div>
         </div>
@@ -162,13 +232,15 @@ export default function PracticeCenter({
               practices={practices}
               selectedId={selectedId}
               onSelect={(id) => {
-                setSelectedId(id);
-                setMobileView("chat");
+                requestSwitch(() => {
+                  setSelectedId(id);
+                  setMobileView("chat");
+                });
               }}
-              onNew={() => setShowNewModal(true)}
+              onNew={() => requestSwitch(() => setShowNewModal(true))}
               onTrashed={handleTrashed}
               onRestored={refetchPractices}
-              onFoundPractice={handleFoundPractice}
+              onFoundPractice={(practice) => requestSwitch(() => handleFoundPractice(practice))}
             />
           </div>
         )}
@@ -230,6 +302,51 @@ export default function PracticeCenter({
           </div>
         )}
       </div>
+
+      {pendingSwitch && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div className="w-full max-w-sm rounded-xl bg-background p-5 shadow-2xl">
+            <h3 className="font-serif text-base font-semibold text-foreground">
+              Stai lasciando «{selected.title}»
+            </h3>
+            <p className="mt-1 text-xs text-secondary">In che stato vuoi lasciare questa pratica?</p>
+            <select
+              value={leaveStatusChoice}
+              onChange={(e) => setLeaveStatusChoice(e.target.value)}
+              className="mt-3 w-full rounded-full border bg-background px-3 py-1.5 text-sm font-medium text-foreground"
+            >
+              {PRACTICE_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <div className="mt-4 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleConfirmLeaveWithSave}
+                className="w-full rounded-full bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Salva stato e continua
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLeaveWithoutSave}
+                className="w-full rounded-full border py-2 text-sm font-medium text-secondary hover:bg-muted hover:text-foreground"
+              >
+                Non salvare
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingSwitch(null)}
+                className="w-full py-1 text-xs text-secondary hover:text-foreground"
+              >
+                Annulla, resta qui
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showNewModal && (
         <NewPracticeModal

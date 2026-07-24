@@ -805,6 +805,14 @@ export default function PracticeWorkspace({
     }
   }
 
+  async function handleReviewLastDraft() {
+    if (status === "loading") return;
+    const lastDraft = [...messages].reverse().find((m) => m.role === "aurora")?.text;
+    if (!lastDraft) return;
+    const reviewPrompt = `Rivedi la seguente bozza di atto notarile (l'ultima versione modificata) in ogni suo aspetto: correttezza grammaticale e ortografica, rispetto della normativa vigente, correttezza delle formalità e delle clausole di stile tipiche di un atto notarile italiano. Segnala puntualmente ogni problema trovato e, dove utile, proponi la correzione.\n\nBOZZA:\n${lastDraft}`;
+    await sendToAgent("Revisiona la tua ultima bozza modificata", reviewPrompt);
+  }
+
   async function handleVerificaTassazione() {
     if (status === "loading") return;
     const lastDraft = [...messages].reverse().find((m) => m.role === "aurora")?.text;
@@ -819,13 +827,14 @@ export default function PracticeWorkspace({
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden p-4">
         <div className="mb-3 border-b pb-3">
           <h2 className="font-serif text-lg font-semibold text-foreground">{practice.title}</h2>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-secondary">
-            <span>{practice.practice_type} · {practice.area} ·</span>
+          <p className="text-xs text-secondary">{practice.practice_type} · {practice.area}</p>
+          <div className="mt-2 flex items-center gap-2 rounded-lg border-2 border-blue-600/40 bg-blue-600/10 px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">Seleziona stato pratica</span>
             <select
               value={practice.status}
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={statusSaving}
-              className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-foreground disabled:opacity-60"
+              className="rounded-full border-2 border-blue-600 bg-background px-3 py-1 text-sm font-semibold text-foreground disabled:opacity-60"
             >
               {PRACTICE_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -833,7 +842,7 @@ export default function PracticeWorkspace({
                 </option>
               ))}
             </select>
-            {statusSaving && <Loader2 size={12} className="animate-spin" aria-hidden="true" />}
+            {statusSaving && <Loader2 size={14} className="animate-spin text-blue-600" aria-hidden="true" />}
           </div>
         </div>
 
@@ -898,9 +907,19 @@ export default function PracticeWorkspace({
           Verifica tassazione (AI)
         </button>
 
+        <button
+          type="button"
+          onClick={handleReviewLastDraft}
+          disabled={status === "loading" || ![...messages].some((m) => m.role === "aurora")}
+          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ClipboardCheck size={13} aria-hidden="true" />
+          Revisiona la tua ultima bozza modificata
+        </button>
+
         <label className="flex w-fit cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-foreground">
           <ClipboardCheck size={13} aria-hidden="true" />
-          Revisiona bozza
+          Revisiona bozza (carica file)
           <input
             type="file"
             accept="application/pdf,.docx,.txt"
