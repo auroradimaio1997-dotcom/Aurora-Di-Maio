@@ -19,8 +19,9 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export function listPractices() {
-  return request<{ practices: Practice[] }>("/api/practices");
+export function listPractices(options?: { trashed?: boolean }) {
+  const query = options?.trashed ? "?trashed=1" : "";
+  return request<{ practices: Practice[] }>(`/api/practices${query}`);
 }
 
 export function createPractice(input: {
@@ -43,6 +44,28 @@ export function updatePractice(practiceId: string, patch: Partial<Practice>) {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
+  });
+}
+
+export function trashPractice(practiceId: string) {
+  return request<{ practice: Practice }>(`/api/practices/${practiceId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ trash: true }),
+  });
+}
+
+export function restorePractice(practiceId: string) {
+  return request<{ practice: Practice }>(`/api/practices/${practiceId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ restore: true }),
+  });
+}
+
+export function deletePracticeForever(practiceId: string) {
+  return request<{ ok: true }>(`/api/practices/${practiceId}`, {
+    method: "DELETE",
   });
 }
 

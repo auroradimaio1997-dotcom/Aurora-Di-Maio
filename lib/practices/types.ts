@@ -54,6 +54,7 @@ export type Practice = {
   chat_id: string;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
 };
 
 export type PracticeDocument = {

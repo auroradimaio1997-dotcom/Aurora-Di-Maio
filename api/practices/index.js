@@ -1,5 +1,34 @@
 const { getSupabaseServerClient } = require("../../lib/practices/supabaseServer");
-const { notConfiguredResponse, setCors } = require("../../lib/practices/shared");
+const { DOCUMENTS_BUCKET, TRASH_RETENTION_DAYS, notConfiguredResponse, setCors } = require("../../lib/practices/shared");
+
+// Permanently purges anything that's been in the trash longer than the
+// retention window — best-effort storage cleanup first, then the DB rows
+// (documents/messages cascade via FK). Runs lazily on every list request
+// since there's no cron; cheap because it's usually a no-op.
+async function purgeExpiredTrash(supabase) {
+  const cutoff = new Date(Date.now() - TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: expired } = await supabase
+    .from("practices")
+    .select("practice_id")
+    .not("deleted_at", "is", null)
+    .lt("deleted_at", cutoff);
+
+  if (!expired || expired.length === 0) return;
+
+  const practiceIds = expired.map((p) => p.practice_id);
+
+  const { data: docs } = await supabase
+    .from("documents")
+    .select("storage_path")
+    .in("practice_id", practiceIds);
+
+  if (docs && docs.length > 0) {
+    await supabase.storage.from(DOCUMENTS_BUCKET).remove(docs.map((d) => d.storage_path));
+  }
+
+  await supabase.from("practices").delete().in("practice_id", practiceIds);
+}
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -15,10 +44,15 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === "GET") {
-    const { data, error } = await supabase
-      .from("practices")
-      .select("*")
-      .order("updated_at", { ascending: false });
+    await purgeExpiredTrash(supabase);
+
+    const trashed = req.query.trashed === "1";
+    let query = supabase.from("practices").select("*");
+    query = trashed
+      ? query.not("deleted_at", "is", null).order("deleted_at", { ascending: false })
+      : query.is("deleted_at", null).order("updated_at", { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) {
       res.status(500).json({ error: error.message });

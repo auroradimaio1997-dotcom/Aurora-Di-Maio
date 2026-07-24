@@ -1,5 +1,5 @@
 const { getSupabaseServerClient } = require("../../../lib/practices/supabaseServer");
-const { notConfiguredResponse, setCors, STATUSES } = require("../../../lib/practices/shared");
+const { DOCUMENTS_BUCKET, notConfiguredResponse, setCors, STATUSES } = require("../../../lib/practices/shared");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -52,6 +52,8 @@ module.exports = async function handler(req, res) {
     }
     if (body?.parties !== undefined) patch.parties = body.parties;
     if (body?.description !== undefined) patch.description = body.description;
+    if (body?.trash === true) patch.deleted_at = new Date().toISOString();
+    if (body?.restore === true) patch.deleted_at = null;
 
     const { data, error } = await supabase
       .from("practices")
@@ -65,6 +67,25 @@ module.exports = async function handler(req, res) {
       return;
     }
     res.status(200).json({ practice: data });
+    return;
+  }
+
+  if (req.method === "DELETE") {
+    const { data: docs } = await supabase
+      .from("documents")
+      .select("storage_path")
+      .eq("practice_id", practiceId);
+
+    if (docs && docs.length > 0) {
+      await supabase.storage.from(DOCUMENTS_BUCKET).remove(docs.map((d) => d.storage_path));
+    }
+
+    const { error } = await supabase.from("practices").delete().eq("practice_id", practiceId);
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ ok: true });
     return;
   }
 

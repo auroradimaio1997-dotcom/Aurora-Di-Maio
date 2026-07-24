@@ -42,13 +42,22 @@ export default function PracticeCenter({
     setMobileView("documents");
   }
 
-  useEffect(() => {
+  function refetchPractices() {
     listPractices()
       .then(({ practices }) => setPractices(practices))
       .catch((err) => {
         if (err instanceof PracticeStorageNotConfiguredError) setNotConfigured(true);
       });
+  }
+
+  useEffect(() => {
+    refetchPractices();
   }, []);
+
+  function handleTrashed(practiceId: string) {
+    setPractices((prev) => prev.filter((p) => p.practice_id !== practiceId));
+    if (selectedId === practiceId) setSelectedId(null);
+  }
 
   const selected = practices.find((p) => p.practice_id === selectedId) ?? null;
 
@@ -96,6 +105,8 @@ export default function PracticeCenter({
                 setShowNewModal(true);
                 setSidebarOpen(false);
               }}
+              onTrashed={handleTrashed}
+              onRestored={refetchPractices}
             />
           </div>
         </div>
@@ -128,6 +139,8 @@ export default function PracticeCenter({
                 setMobileView("chat");
               }}
               onNew={() => setShowNewModal(true)}
+              onTrashed={handleTrashed}
+              onRestored={refetchPractices}
             />
           </div>
         )}
