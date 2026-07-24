@@ -578,6 +578,26 @@ export default function PracticeWorkspace({
           practiceId={practice.practice_id}
         />
 
+        <CategoryUploadSection
+          label="Dichiarazione di Successione"
+          category="Dichiarazione di Successione"
+          practiceId={practice.practice_id}
+        />
+
+        <CategoryUploadSection
+          label="Certificato di morte"
+          category="Certificato di Morte"
+          practiceId={practice.practice_id}
+        />
+
+        <CategoryUploadSection
+          label="Regime patrimoniale"
+          category="Regime Patrimoniale"
+          practiceId={practice.practice_id}
+          portalUrl={SMARTACCESS_URL}
+          portalLabel="SmartRUN — Anagrafica"
+        />
+
         <ClausoleAggiuntiveSection value={clausoleAggiuntive} onChange={setClausoleAggiuntive} />
       </div>
 

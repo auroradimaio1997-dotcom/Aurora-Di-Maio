@@ -249,6 +249,9 @@ export default function DocumentsPanel({
   );
   const dottrina = documents.filter((d) => d.category === "Dottrina e Giurisprudenza");
   const partiIdentita = documents.filter((d) => d.category === "Documenti delle parti");
+  const dichiarazioneSuccessione = documents.filter((d) => d.category === "Dichiarazione di Successione");
+  const certificatoMorte = documents.filter((d) => d.category === "Certificato di Morte");
+  const regimePatrimoniale = documents.filter((d) => d.category === "Regime Patrimoniale");
   const altri = documents.filter((d) => OTHER_CATEGORIES.includes(d.category));
 
   if (collapsed) {
@@ -349,6 +352,9 @@ export default function DocumentsPanel({
         />
         <DocumentGroup label="Visure caricate" items={visure.map(docToItem)} />
         <DocumentGroup label="Documenti di identità delle parti" items={partiIdentita.map(docToItem)} />
+        <DocumentGroup label="Dichiarazione di Successione" items={dichiarazioneSuccessione.map(docToItem)} />
+        <DocumentGroup label="Certificato di Morte" items={certificatoMorte.map(docToItem)} />
+        <DocumentGroup label="Regime Patrimoniale" items={regimePatrimoniale.map(docToItem)} />
         <DocumentGroup label="Altri documenti" items={altri.map(docToItem)} />
       </div>
     </div>

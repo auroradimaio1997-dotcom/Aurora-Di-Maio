@@ -1,22 +1,39 @@
 import type { Metadata } from "next";
-import AppShell from "@/components/layout/AppShell";
-import PagePlaceholder from "@/components/layout/PagePlaceholder";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import PracticeCenter from "@/components/practices/PracticeCenter";
 
 export const metadata: Metadata = {
   title: "Mortis causa | Aurora Di Maio",
 };
 
+/**
+ * Full-width, clean workspace — no site sidebar/breadcrumb chrome here on
+ * purpose. Once a notary is working a practice, the whole page belongs to
+ * the practice list drawer + chat + documents, nothing else competing for
+ * space.
+ */
 export default function MortisCausaPage() {
   return (
-    <AppShell>
-      <PagePlaceholder
-        title="Mortis causa"
-        breadcrumbs={[
-          { label: "Assistente Notarile", href: "/assistente-notarile" },
-          { label: "Redazione Atti", href: "/assistente-notarile/redazione-atti" },
-          { label: "Mortis causa" },
-        ]}
-      />
-    </AppShell>
+    <div className="flex h-[calc(100dvh-65px)] flex-col">
+      <div className="flex items-center gap-2 border-b px-4 py-2">
+        <Link
+          href="/assistente-notarile/redazione-atti"
+          className="flex items-center gap-1 text-xs text-secondary hover:text-foreground"
+        >
+          <ChevronLeft size={14} aria-hidden="true" />
+          Redazione Atti
+        </Link>
+        <span className="text-xs text-secondary">/</span>
+        <h1 className="text-sm font-semibold text-foreground">Mortis causa</h1>
+      </div>
+      <div className="min-h-0 flex-1">
+        <PracticeCenter
+          practiceType="Mortis causa"
+          area="Assistente Notarile"
+          agentId="Agente Mortis causa"
+        />
+      </div>
+    </div>
   );
 }

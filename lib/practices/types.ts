@@ -24,6 +24,9 @@ export type DocumentCategory =
   | "Catasto"
   | "Fiscalità"
   | "Dottrina e Giurisprudenza"
+  | "Dichiarazione di Successione"
+  | "Certificato di Morte"
+  | "Regime Patrimoniale"
   | "Bozze dell'atto"
   | "Allegati"
   | "Altro";
@@ -37,6 +40,9 @@ export const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   "Catasto",
   "Fiscalità",
   "Dottrina e Giurisprudenza",
+  "Dichiarazione di Successione",
+  "Certificato di Morte",
+  "Regime Patrimoniale",
   "Bozze dell'atto",
   "Allegati",
   "Altro",
