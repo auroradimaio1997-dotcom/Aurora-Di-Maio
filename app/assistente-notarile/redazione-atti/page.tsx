@@ -20,6 +20,10 @@ export default function RedazioneAttiPage() {
           { label: "Inter vivos", href: "/assistente-notarile/redazione-atti/inter-vivos" },
           { label: "Mortis causa", href: "/assistente-notarile/redazione-atti/mortis-causa" },
           { label: "Societario", href: "/assistente-notarile/redazione-atti/societario" },
+          {
+            label: "Mutui e relazioni preliminari",
+            href: "/assistente-notarile/redazione-atti/mutui-relazioni-preliminari",
+          },
         ]}
       </PagePlaceholder>
     </AppShell>
